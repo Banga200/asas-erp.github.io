@@ -1,11 +1,17 @@
 <script setup>
-const props = defineProps(["text", "position", 'textBox', 'show']);
+const props = defineProps(["text", "position", 'textBox', 'show', 'disableOnclick']);
 const isTooltipVisible = ref(false);
 function showTooltip() {
   isTooltipVisible.value = true;
 }
 function hideTooltip() {
   isTooltipVisible.value = false;
+}
+function showPopover() {
+  if (!props.disableOnclick) {
+    isTooltipVisible.value  = !isTooltipVisible.value 
+  }
+  
 }
 watch(() => props.show, (value) => {
     if (value) {
@@ -31,7 +37,7 @@ onUnmounted(() => {
   <div
     
     class="tooltip-container "
-    @click.capture="isTooltipVisible = !isTooltipVisible"
+    @click.capture="showPopover"
   >
     <slot></slot>
     <div v-show="isTooltipVisible" class="tooltip-content top" :class="[props.position, {'show': isTooltipVisible}]">

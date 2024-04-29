@@ -60,8 +60,8 @@ const validation = ref({
   customer: false,
   item: false,
   quantity: false,
-  warehouse: false
-})
+  warehouse: false,
+});
 // Stores
 const salesStore = useSalesStore();
 const { Sales } = storeToRefs(salesStore);
@@ -120,6 +120,15 @@ const footerTabs = shallowRef({
   PayWays,
 });
 const isNew = ref(true);
+
+onMounted(async () => {
+  if (OfferPrice) {
+    await OfferPriceStore.GetOfferPriceInvoices();
+  } else if (ReturnInvoice) {
+  } else if (SalesInvoice) {
+  } else if (Booked) {
+  }
+});
 async function AddNewInvoice() {
   await userStore.CheckPermissions(route.meta.moduleId);
   if (Permissions.value?.canAccess) {
@@ -154,7 +163,8 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
     return customer.gun === customerID;
   });
   if (selectedCustomerIndex >= 0) {
-    const selectedCustomer = { ...Customers.value[selectedCustomerIndex] };
+    if (NewItems.value[0].itemGUN !== '') {
+      const selectedCustomer = { ...Customers.value[selectedCustomerIndex] };
     Customer.value = selectedCustomer;
     if (isInoviceTypeChange) {
       chooseenCustomerDialog.value = true;
@@ -171,17 +181,16 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
       }
     }
     if (NewItems.value[0].itemGUN) {
-      // إذاوجد سعر و حسم لدى العميل 
+      // إذاوجد سعر و حسم لدى العميل
       if (
         (selectedCustomer.cashInvoiceDiscountPercentage ||
           selectedCustomer.creditInvoiceDiscountPercentage) &&
         selectedCustomer.defaultPrice
       ) {
-        showModel.value = true
+        showModel.value = true;
         // Customer.value = GeneralFields.value.isCash ? selectedCustomer.cashInvoiceDiscountPercentage : selectedCustomer.creditInvoiceDiscountPercentage
         defaultPrice.value = selectedCustomer.defaultPrice;
-      } 
-      else {
+      } else {
         if (
           (selectedCustomer.cashInvoiceDiscountPercentage ||
             selectedCustomer.creditInvoiceDiscountPercentage) &&
@@ -199,6 +208,7 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
         }
       }
     }
+    }
   }
 }
 // إذا كان فيه حسم لدى العميل يتم حفظه
@@ -207,7 +217,7 @@ function setCustomerDiscount() {
     Customer.value.cashInvoiceDiscountPercentage
       ? (CustomerDiscount.value = Customer.value.cashInvoiceDiscountPercentage)
       : (CustomerDiscount.value = 0);
-    console.log(Customer.value.cashInvoiceDiscountPercentage)
+    console.log(Customer.value.cashInvoiceDiscountPercentage);
     handleDiscount(`${CustomerDiscount.value}%`);
   } else {
     Customer.value.creditInvoiceDiscountPercentage
@@ -267,28 +277,31 @@ function handleNoneSaleItems() {
   notForSale.value = false;
 }
 async function handleBranch() {
-  await checkInvoiceChanges();
-  // إذا العميل المختار غير موجود في الفرع الاخر "اجعل الحقل فارغ"
-  if (Customer.value?.gun) {
-    let customer = Customers.value?.find((item) => {
-      return item.gun === Customer.value.gun;
-    });
-    if (!customer) {
-      commonStore.ClearCustomer();
+  // شيك اذا الفاتورة جديدة ام فقط جلب الفروع
+  if (isNew === false) {
+    await checkInvoiceChanges();
+    // إذا العميل المختار غير موجود في الفرع الاخر "اجعل الحقل فارغ"
+    if (Customer.value?.gun) {
+      let customer = Customers.value?.find((item) => {
+        return item.gun === Customer.value.gun;
+      });
+      if (!customer) {
+        commonStore.ClearCustomer();
+      }
     }
-  }
 
-  // إذا المندوب المختار غير موجود في الفرع الاخر "اجعل الحقل فارغ"
-  let saleMan = SalesMen.value?.find((item) => {
-    return item.gun === GeneralFields.value.salesmanGUN;
-  });
-  if (!saleMan) {
-    GeneralFields.value.gun;
-    salemanField.value = "";
-  }
-  // تحقق اذا كان يوجد صنف واحد على الاقل
-  if (NewItems.value[0].itemGUN !== "") {
-    priceDialog.value = true;
+    // إذا المندوب المختار غير موجود في الفرع الاخر "اجعل الحقل فارغ"
+    let saleMan = SalesMen.value?.find((item) => {
+      return item.gun === GeneralFields.value.salesmanGUN;
+    });
+    if (!saleMan) {
+      GeneralFields.value.gun;
+      salemanField.value = "";
+    }
+    // تحقق اذا كان يوجد صنف واحد على الاقل
+    if (NewItems.value[0].itemGUN !== "") {
+      priceDialog.value = true;
+    }
   }
 }
 async function handleTaxApplied(isTaxApplied, index) {
@@ -313,7 +326,7 @@ async function handleTaxApplied(isTaxApplied, index) {
           if (selectedIndex >= 0) {
             for (let index = 0; index < NewItems.value.length - 1; index++) {
               if (NewItems.value[index].itemGUN === itemId) {
-                // // تحقق اذا كان يوجد تغيير في احتساب الضريبة 
+                // // تحقق اذا كان يوجد تغيير في احتساب الضريبة
                 // if(NewItems.value[index].taxValue && (NewItems.value[index].taxValue !== NewItems.value[selectedIndex].taxValue)) {
                 //   // إضهار تنبيه بوجود تغيير في الضريبة هل تريد التحديث
                 //   taxAppliedDialog.value = true;
@@ -323,7 +336,7 @@ async function handleTaxApplied(isTaxApplied, index) {
                 //   NewItems.value[selectedIndex].taxValue;
                 // }
                 NewItems.value[index].taxValue =
-                NewItems.value[selectedIndex].taxValue;
+                  NewItems.value[selectedIndex].taxValue;
               }
             }
           }
@@ -446,14 +459,14 @@ function setDiscountToAllItems(discount) {
 function setPriceOnItems() {}
 
 function handlePriceType() {
-  if(!isCustomerPriceCheck){
+  if (!isCustomerPriceCheck) {
     if (NewItems.value[0].itemGUN) {
-    if (Customer.value.defaultPrice !== GeneralFields.value.priceType) {
-      priceTypeDialog.value = true;
-    } else {
-      priceTypeDialog.value = true;
+      if (Customer.value.defaultPrice !== GeneralFields.value.priceType) {
+        priceTypeDialog.value = true;
+      } else {
+        priceTypeDialog.value = true;
+      }
     }
-  }
   }
 }
 // اذا ضغط على زر نعم (يريد تغير الاسعار على حسب نوع السعر)
@@ -476,19 +489,17 @@ function setPriceType() {
 }
 function setCustomerCheckValue() {
   if (isCustomerDiscountCheck.value && isCustomerPriceCheck.value) {
-    setPriceType()
+    setPriceType();
     let delay = setTimeout(() => {
-      setCustomerDiscount()
-    }, 1000)
-    clearTimeout(delay)
+      setCustomerDiscount();
+    }, 1000);
+    clearTimeout(delay);
+  } else if (isCustomerDiscountCheck.value) {
+    setCustomerDiscount();
+  } else if (isCustomerPriceCheck.value) {
+    setPriceType();
   }
-  else if (isCustomerDiscountCheck.value) {
-    setCustomerDiscount()
-  }
-  else if (isCustomerPriceCheck.value) {
-    setPriceType()
-  }
-  showModel.value = false
+  showModel.value = false;
 }
 
 async function saveInvoice() {
@@ -496,49 +507,52 @@ async function saveInvoice() {
   if (Permissions.value?.canAdd) {
     await checkBeforeSave();
     setTimeout(async () => {
-      if (validation.value.customer || validation.value.item || validation.value.quantity || validation.value.warehouse) {
+      if (
+        validation.value.customer ||
+        validation.value.item ||
+        validation.value.quantity ||
+        validation.value.warehouse
+      ) {
         return;
+      } else {
+        await OfferPriceStore.SaveOfferPriceInvoice();
       }
-      else {
-        await OfferPriceStore.SaveOfferPriceInvoice() ;
-      }
-    }, 500)
-  }
-  else {
+    }, 500);
+  } else {
     errorHandle("غير مصرح لك");
     isNew.value = true;
-    commonStore.ClearEverythings()
+    commonStore.ClearEverythings();
   }
 }
 function checkBeforeSave() {
   // شيك إذا فيه صنف واحد على الاقل
-  if(NewItems.value.length === 1 || NewItems.value.length === 0) {
+  if (NewItems.value.length === 1 || NewItems.value.length === 0) {
     validation.value.item = true;
   }
-  // إذا كان نوع الفاتورة اجل 
-  console.log(GeneralFields.value.isCash)
+  // إذا كان نوع الفاتورة اجل
+  console.log(GeneralFields.value.isCash);
   if (GeneralFields.value.isCash === false) {
     if (!Customer.value.gun || Customer.value.isSuspend) {
-      // وضع تنبيه في حقل العميل ولا يتم الحفظ 
-      validation.value.customer = true
+      // وضع تنبيه في حقل العميل ولا يتم الحفظ
+      validation.value.customer = true;
     }
   }
-  // شيك اذا كانت الكمية تساوي صفر او فارغ 
+  // شيك اذا كانت الكمية تساوي صفر او فارغ
   for (let index = 0; index < NewItems.value.length - 1; index++) {
     const element = NewItems.value[index];
-    if (element.quantity === 0 || element.quantity === '') {
+    if (element.quantity === 0 || element.quantity === "") {
       validation.value.quantity = true;
     }
     if (element.warehouseGUN) {
-      
-      let warehouse = ItemDetails.value[index]?.nonServiceData?.warehouses.find(item => {
-        return item.gun === element.warehouseGUN
-      })
+      let warehouse = ItemDetails.value[index]?.nonServiceData?.warehouses.find(
+        (item) => {
+          return item.gun === element.warehouseGUN;
+        }
+      );
       if (warehouse) {
         if (warehouse.isSuspend) {
           validation.value.warehouse = true;
-        }
-        else {
+        } else {
           validation.value.warehouse = false;
         }
       }
@@ -549,7 +563,11 @@ function checkBeforeSave() {
   // }
 }
 async function insertAlternative() {
-  await commonStore.GetInsertAlternativesItems(ItemId.value,SelectedAlternative.value, route.meta.DocOrder)
+  await commonStore.GetInsertAlternativesItems(
+    ItemId.value,
+    SelectedAlternative.value,
+    route.meta.DocOrder
+  );
   alternativeDialog.value = false;
 }
 </script>
@@ -622,7 +640,12 @@ async function insertAlternative() {
               { text: 'طباعة كاشير' },
             ]"
           />
-          <Button :color="'primary'" :text="'حفظ'" :rightIcon="Save" @click.capture="saveInvoice"/>
+          <Button
+            :color="'primary'"
+            :text="'حفظ'"
+            :rightIcon="Save"
+            @click.capture="saveInvoice"
+          />
         </div>
       </section>
       <!-- Details  -->
@@ -688,6 +711,7 @@ async function insertAlternative() {
                     :label="'احتساب الضريبة'"
                     :displayTitle="'name'"
                     :returnValue="'id'"
+                    :noFilter="true"
                     :items="TaxApplied"
                     v-model:valueReturn="GeneralFields.isTaxApplied"
                     :selectFirstItem="true"
@@ -786,7 +810,8 @@ async function insertAlternative() {
                 <component
                   :is="customerTabs[customerTabSelected]"
                   @customerHasDiscount="checkCustomerHasDiscount"
-                :customerValidation="validation.customer"/>
+                  :customerValidation="validation.customer"
+                />
               </div>
             </div>
           </div>
@@ -800,7 +825,8 @@ async function insertAlternative() {
           @showAlternativeItems="() => (alternativeDialog = true)"
           @restRecalculate="() => (recalculate = false)"
           @recalculateTotalDiscount="setDiscountToAllItems"
-          @clearValidation="() => (validation.item = false)"/>
+          @clearValidation="() => (validation.item = false)"
+        />
       </section>
       <!-- Footer Details  -->
       <section class="invoice-footer">
@@ -919,16 +945,27 @@ async function insertAlternative() {
         </div>
       </section>
     </div>
-    <Model v-model:show="showModel"
-    :headerText="'تنبية'"
-    :title="'هل تريد إعتماد'"
-    :isSlot="true"
-    :cancel-text="'لا'"
-    :confirmColor="'neutral'"
-    @confirm="setCustomerCheckValue" v-if="showModel">
+    <Model
+      v-model:show="showModel"
+      :headerText="'تنبية'"
+      :title="'هل تريد إعتماد'"
+      :isSlot="true"
+      :cancel-text="'لا'"
+      :confirmColor="'neutral'"
+      @confirm="setCustomerCheckValue"
+      v-if="showModel"
+    >
       <div class="row flex-column gap-6">
-        <CheckBox :label="'السعر الخاص بالعميل'" :color="'primary'" v-model:input="isCustomerPriceCheck"/>
-        <CheckBox :label="'الحسم الخاص بالعميل'" :color="'primary'" v-model:input="isCustomerDiscountCheck"/>
+        <CheckBox
+          :label="'السعر الخاص بالعميل'"
+          :color="'primary'"
+          v-model:input="isCustomerPriceCheck"
+        />
+        <CheckBox
+          :label="'الحسم الخاص بالعميل'"
+          :color="'primary'"
+          v-model:input="isCustomerDiscountCheck"
+        />
       </div>
     </Model>
     <!-- If Customer Has a Dicount  -->
@@ -960,7 +997,7 @@ async function insertAlternative() {
       :headerText="'تنبية'"
       v-if="priceDialog"
     />
-    
+
     <Dialog
       :confirmColor="'neutral'"
       :cancelText="'لا'"
@@ -982,17 +1019,18 @@ async function insertAlternative() {
       @clickLeftAction="handleNoneSaleItems"
     />
     <Model
-    class="fixed"
-    v-model:show="alternativeDialog"
-    :headerText="'الاصناف البديلة'"
-    :headerIcon="Info"
-    :iconToolTip="'هذه الأصناف المرتبطة بالفرع والتي تقبل البيع بنفس نوع الفاتورة وغير موقفة'"
-    :iconToolTipPosition="'bottom-left'"
-    :confirmColor="'primary'"
-    :confirmText="'إدراج'"
-    @confirm="insertAlternative"
-    v-if="alternativeDialog">
-    <AlternativeItems @insertAlternative="insertAlternative"/>
-  </Model>
+      class="fixed"
+      v-model:show="alternativeDialog"
+      :headerText="'الاصناف البديلة'"
+      :headerIcon="Info"
+      :iconToolTip="'هذه الأصناف المرتبطة بالفرع والتي تقبل البيع بنفس نوع الفاتورة وغير موقفة'"
+      :iconToolTipPosition="'bottom-left'"
+      :confirmColor="'primary'"
+      :confirmText="'إدراج'"
+      @confirm="insertAlternative"
+      v-if="alternativeDialog"
+    >
+      <AlternativeItems @insertAlternative="insertAlternative" />
+    </Model>
   </div>
 </template>

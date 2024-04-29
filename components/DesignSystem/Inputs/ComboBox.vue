@@ -33,7 +33,7 @@ const props = defineProps([
   "bigData",
   "clearable",
   "readOnly",
-  "leftInnerIconValue",
+  "leftInnerIconItem",
   "rightIcon",
   "leftIcon",
   "badgeText",
@@ -201,17 +201,18 @@ function setFirstItem(item) {
       </div>
     </div>
     <!-- Menu  -->
-    <div class="dropMenu virtual" v-show="isOpen && !disabled">
+    <div class="dropMenu" :class="{'virtual': props.bigData}" v-show="isOpen && !disabled">
       <div v-if="items && !bigData">
+        
           <Item
           v-for="(item) in items"
           :key="item[props.returnValue]"
           :text="item[props.displayTitle]"
-          :leftInnerIcon="item[props.leftInnerIconValue] ? leftInnerIcon : undefined"
-          :leftInnerIconToolTip="item[props.leftInnerIconValue] ? leftInnerIconToolTip : undefined"
+          :leftInnerIcon="item[props.leftInnerIconItem] ? leftInnerIcon : undefined"
+          :leftInnerIconToolTip="item[props.leftInnerIconItem] ? leftInnerIconToolTip : undefined"
           :leftInnerIconToolTipPosition="'bottom-right'"
           :selected="item[props.returnValue] === selectedItem"
-          @click="setItem(item[props.displayTitle], item[props.returnValue])"
+          @click.stop="setItem(item[props.displayTitle], item[props.returnValue])"
         />
         <div class="trigger" v-if="isPage">جاري جلب الأصناف...</div>
       </div>

@@ -26,7 +26,7 @@ function hasDiscount(customerID, index) {
         v-model:valueReturn="customerId"
         :label="'العميل'"
         :color="(Customer.isSuspend || customerValidation) ? 'danger' : undefined"
-        :leftInnerIconValue="Customer.isSuspend ? 'isSuspend' : ''"
+        :leftInnerIconItem="'isSuspend'"
         :leftInnerIcon="Customer.isSuspend ? Info: ''"
         :leftInnerIconToolTip="'هذا العميل موقف'"
         :leftInnerIconToolTipPosition="'bottom'"

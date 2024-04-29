@@ -3,10 +3,8 @@ import {ref} from 'vue';
 export const useOfferPriceStore = defineStore('offerPrice', () => {
     const {handleCodesMessage} = useHandleCodes();
     const commonStore = useCommonStore();
-    // const {GeneralFields, NewItems, Customer} = storeToRefs(commonStore)
-    // States 
-    // const commonStore = useCommonStore();
-    // const {Branches} = storeToRefs(commonStore)
+    const {GeneralFields} = storeToRefs(commonStore)
+    
     let generaFields = {}
     const NewOfferPrice = ref(
         {
@@ -20,7 +18,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
           }
     )
     const Invoices = ref([]);
-    let isCustomerValid = false
+    let isCustomerValid = false;
     async function SaveOfferPriceInvoice() {
         await RemoveUnnessaceryFields();
         
@@ -37,7 +35,24 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             console.log(error)
         }
     }
-    async function GetOfferPriceInvoices() {
+    async function GetOfferPriceInvoices(search, pageNumber = 1) {
+        try {
+            await useServerFetch(`/offerPrice/specific-view-data-without-details/${pageNumber}`, {
+                branchId: commonStore.GeneralFields.branchGUN,
+                searchText: search ? search : ''
+            }).then(res => {
+                if (res.code === '200') {
+                    commonStore.InvoicesTree = res.data.viewData;
+                }
+                else {
+                    handleCodesMessage(res.code, res.data.viewMessage)
+                }
+            }).catch(error => {
+                console.log(error)
+            }) 
+        } catch (error) {
+            console.log(error)
+        }
         
     }
     function RemoveUnnessaceryFields() {
@@ -79,6 +94,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
     }
     return {
         NewOfferPrice,
-        SaveOfferPriceInvoice
+        SaveOfferPriceInvoice,
+        GetOfferPriceInvoices
     }
 })

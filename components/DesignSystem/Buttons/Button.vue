@@ -104,7 +104,8 @@ function selectItem(index) {
         :value="item.value"
         :rightIcon="item.rightIcon || undefined"
         :leftIcon="item.leftIcon || undefined"
-        :color="item.color || undefined"/>
+        :color="item.color || undefined"
+        :disabled="item.disabled"/>
     </div>
   </div>
 </template>

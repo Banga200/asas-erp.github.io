@@ -4,15 +4,17 @@ import ArrowRight from '../../Icons/Arrows/ArrowRight.vue';
 import ArrowLeftDouble from '../../Icons/Arrows/ArrowLeftDouble.vue';
 import ArrowLeft from '../../Icons/Arrows/ArrowLeft.vue';
 import Button from '../Buttons/Button.vue';
+const commonStore = useCommonStore();
+const {InvoicesTree} = storeToRefs(commonStore)
 </script>
 <template>
-    <div class="Pagenation_Items row">
-        <Button :onlyIcon="true" :rightIcon="ArrowRightDouble" :outline="true" :size="'small'"/>
-        <Button :onlyIcon="true" :rightIcon="ArrowRight" :outline="true" :size="'small'"/>
-        <div class="row">
-            <span class="total">12/30</span>
-        </div>
-        <Button :onlyIcon="true" :rightIcon="ArrowLeft" :outline="true" :size="'small'"/>
-        <Button :onlyIcon="true" :rightIcon="ArrowLeftDouble" :outline="true" :size="'small'"/>
+    <div class="Pagenation_Items  row">
+        <Button :onlyIcon="true" :icon="ArrowRightDouble" :outline="true" :size="'x-small'"/>
+        <Button :onlyIcon="true" :icon="ArrowRight" :outline="true" :size="'x-small'"/>
+
+        <span class="total flex-grow">{{InvoicesTree?.currentPage}}/{{InvoicesTree?.totalPages}}</span>
+
+        <Button :onlyIcon="true" :icon="ArrowLeft" :outline="true" :size="'x-small'"/>
+        <Button :onlyIcon="true" :icon="ArrowLeftDouble" :outline="true" :size="'x-small'"/>
     </div>
 </template>

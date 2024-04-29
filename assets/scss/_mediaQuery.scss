@@ -360,24 +360,34 @@
 // height 
 
 
-@media (min-height: 1080px) {
+
+
+
+@media (min-height: 719px) {
   .table-container-invoice {
-    min-height: 554px;
-    max-height: 554px
+    min-height: 193px;
+    max-height: 193px;
   }
 }
-@media (max-height: 768px) {
+
+@media (max-height: 767px) {
   .table-container-invoice {
-    min-height: 242px;
-    max-height: 242px;
+    min-height: 241px;
+    max-height: 241px;
   }
 
 }
 
-@media (max-height: 720px) {
+@media(min-height: 950px) {
   .table-container-invoice {
-    min-height: 194px;
-    max-height: 194px;
+    min-height: 520px;
+    max-height: 520px
+  }
+}
+@media(min-height: 1079px) {
+  .table-container-invoice {
+    min-height: 553px;
+    max-height: 553px
   }
 }
 

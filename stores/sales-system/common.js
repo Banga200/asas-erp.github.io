@@ -23,6 +23,7 @@ export const useCommonStore = defineStore("common", () => {
     OperationalHandingOutInvoice: 16,
     OperationalHandingInInvoice: 17
   }
+  const InvoicesTree = ref(null);
   const GeneralFields = ref({
     branchGUN: "",
     salesmanGUN: "",
@@ -44,9 +45,9 @@ export const useCommonStore = defineStore("common", () => {
     time: '',
     today: ''
   })
-  const AlternativesItems = ref(null);
-  const SelectedAlternative = ref(null);
-  const ItemId = ref(null);
+  const AlternativesItems = ref(null); // الاصناف البديلة 
+  const SelectedAlternative = ref(null);// اذا تم اختيار صنف بديل
+  const ItemId = ref(null); 
   const PriceType = ref(null);
   const TaxApplied = ref();
   const Branches = ref(null);
@@ -80,7 +81,7 @@ export const useCommonStore = defineStore("common", () => {
   const Sales = ref([]);
   const Invoices = ref([]);
   // Actions
-
+  // جلب الفروع
   async function GetBranches() {
     try {
       await useServerFetch("/Branch/V1")
@@ -98,7 +99,7 @@ export const useCommonStore = defineStore("common", () => {
       console.log(error);
     }
   }
-  // Offer Price
+  // جلب فروع Offer Price
   async function GetBranchDataForOfferPrice(branchId, isCash) {
     try {
       await useServerFetch(
@@ -164,6 +165,7 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
+  // جلب ضريبة الصنف 
   async function GetItemsTaxes(itemIds) {
     
     try {
@@ -192,6 +194,7 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
+  // جلب كميات على حسب المستودع 
   async function GetItemQuantityByWarehouse(itemId,warehouseId, index) {
     try {
       await useServerFetch(
@@ -215,6 +218,7 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
+  // جلب العناصر البديلة 
   async function GetAlternativesItems(itemId, docType,search, pageNumber) {
     
     try {
@@ -244,6 +248,7 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
+  // إدراج الاصناف البديلة 
   async function GetInsertAlternativesItems(itemId,alternativeId, docType) {
     try {
       await useServerFetch(
@@ -280,6 +285,7 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
+  // ادراج الاصناف الملحقة 
   async function GetInsertAccessoriesItems(itemId, docType) {
     
     try {
@@ -483,6 +489,7 @@ export const useCommonStore = defineStore("common", () => {
   }
   return {
     // States
+    InvoicesTree,
     GeneralFields,
     FooterDetails,
     Branches,

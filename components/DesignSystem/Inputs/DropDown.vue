@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import Item from "../Generals/Item.vue";
 import ArrowDown from "../../Icons/Arrows/ArrowDown.vue";
-const { text, leftIcon, value, color, disabled, items, label,DropArrowIcon } = defineProps([
+const { text, leftIcon, value, color, disabled, items, label,DropArrowIcon, displayTitle, returnValue } = defineProps([
   "text",
   "leftIcon",
   'color',
@@ -10,6 +10,8 @@ const { text, leftIcon, value, color, disabled, items, label,DropArrowIcon } = d
   "disabled",
   "items",
   "label",
+  "displayTitle",
+  "returnValue",
   'DropArrowIcon'
 ]);
 const input = defineModel('input');
@@ -46,7 +48,11 @@ function setItem(value) {
     </div>
     <!-- Menu  -->
     <div class="dropMenu"  v-if="isOpen">
-        <Item v-for="n in 5" :key="n" :text="n" @click="setItem(n)" />
+        <Item v-for="(item) in items"
+          :key="item[returnValue]"
+          :text="item[displayTitle]"
+          :selected="item[returnValue] === selectedItem"
+          @click="setItem(item[displayTitle], item[returnValue])" />
     </div>
   </div>
 </template>

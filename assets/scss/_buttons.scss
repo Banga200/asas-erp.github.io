@@ -22,9 +22,7 @@ button {
         width: 1rem;
         height: 1rem;
 
-        svg {
-            
-        }
+        
 
     }
     &.block {
@@ -37,6 +35,14 @@ button {
     }
     &.small {
         padding: $padding-6;
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+    &.x-small {
+        width: 26px;
+        height: 26px;
         svg {
             width: 14px;
             height: 14px;

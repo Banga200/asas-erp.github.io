@@ -6,110 +6,15 @@ import Button from "~/components/DesignSystem/Buttons/Button.vue";
 import Filter from "~/components/Icons/Filter.vue";
 import Tree from "~/components/DesignSystem/Generals/Tree.vue";
 const userStore = useUserStore();
+const commonStore = useCommonStore();
+const {Branches, InvoicesTree} = storeToRefs(commonStore)
 const {Permissions} = storeToRefs(userStore)
 const items = ref([
-  {
-    text: "شركة اساس الحاسب",
-    child: [
-      // {
-      //   text: "مؤسسة العقلة",
-      //   child: [
-      //     {
-      //       text: "حسابات الموظفين",
-      //       child: [],
-      //     },
-      //   ],
-      // },
-    ],
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },{
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },
-
-  {
-    text: "جسر",
-    child: []
-  },
-  {
-    text: "جسر",
-    child: []
-  },{
-    text: "جسر",
-    child: []
-  },
+  
 ]);
+onMounted(async () => {
+  await commonStore.GetBranches();
+})
 </script>
 <template>
   <div>
@@ -119,17 +24,15 @@ const items = ref([
       <!-- Pagenation  -->
       <PagenationItems />
       <!-- Select DropDown  -->
-      <div class="row align-center justify-space-between gap-10">
-        <div class="col-9 col">
-          <DropDown :text="'كل الفروع'"/>
-        </div>
-        <div class="col-2 col">
-          <Button :onlyIcon="true" :rightIcon="Filter" />
-        </div>
+      <div class="row align-center  gap-10">
+        <DropDown :text="'كل الفروع'" :items="Branches" :displayTitle="'name2'" :returnValue="'gun'" class="flex-grow"/>
+      
+        <Button :onlyIcon="true" :icon="Filter" />
+      
       </div>
       <!-- Tree  -->
       <div class="tree-container" v-if="Permissions?.canView">
-        <Tree v-for="(item, i) in items" :key="i" :item="item" :noRepeat="true"/>
+        <Tree v-for="(item, i) in InvoicesTree?.data" :key="i" :displayTitle="'no'" :secondaryTitle="'customer'" :returnValue="'gun'" :item="item" :noRepeat="true"/>
       </div>
     </div>
   </div>

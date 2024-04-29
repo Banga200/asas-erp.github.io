@@ -331,7 +331,7 @@ async function handleKeyPress(event, i) {
         </td>
         <!-- الصنف  -->
         <td class="item-column">
-          <Popover  :position="'bottom-left'" :show="ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories || ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives">
+          <Popover :disableOnclick="true"  :position="'bottom-left'" :show="ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories || ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives">
             <Button
               :onlyIcon="true"
               :color="'neutral'"
@@ -345,24 +345,28 @@ async function handleKeyPress(event, i) {
                   text: 'كرت الصنف',
                   rightIcon: Statment,
                   value: '(F1)',
+                  disable: false
                 },
                 {
                   id: 2,
                   text: 'الأصناف الملحقة',
                   rightIcon: Insert,
                   value: '(F6)',
+                  disabled: !ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories
                 },
                 {
                   id: 3,
                   text: 'الأصناف البديلة',
                   rightIcon: Convert,
                   value: '(F5)',
+                  disabled: !ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives
                 },
                 {
                   id: 4,
                   text: 'بحث متقدم',
                   rightIcon: Search,
                   value: '(Enter)',
+                  disabled: false
                 },
                 {
                   id: 5,
@@ -370,6 +374,7 @@ async function handleKeyPress(event, i) {
                   rightIcon: Delete,
                   color: 'danger',
                   value: '(Delete)',
+                  disabled: false
                 },
               ]"
               
