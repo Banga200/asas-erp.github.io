@@ -1,0 +1,125 @@
+
+$primary-700: #51ADFC;
+$primary-600: #67B8FC;
+$primary-800: #3CA3FB;
+$primary-400: #93CCFD; 
+$primary-50: #E9F5FF;
+$primary-100: #D4EBFE;
+$success-700: #33EF72;
+$success-50: #33EF72;
+$danger-700: #FA5656;
+$warning-800: #FFC579;
+$warning-700: #FFCD8A;
+$neutral-100: #EEE;
+$neutral-300: #B8B8B8;
+$neutral-400: #A0A0A0;
+$neutral-700: #585858;
+$neutral-600: #707070;
+$neutral-500: #888;
+$neutral-50: #F7F7F7;
+$white: #fff;
+$paragraph: #5F6368;
+$success-100: #E2FDEB;
+$success-800: #16ED5E;
+$danger-100: #FEE7E7;
+$danger-800: #F93E3E;
+
+$primary-900: #2699FB;
+$neutral-200: #CFCFCF;
+$success-900: #10D451;
+$danger-900: #F92626;
+$warning-900: #FFBE69;
+$neutral-900: #292929;
+
+// ========== Disabled ================
+$primary-300: #A8D6FD;
+$success-400: #8BF6AE;
+$danger-400: #FC9F9F;
+$warning-400: #FFE2BC;
+
+// ======== Backgrounds ============
+// Body Background 
+$background-neutral-200: #CFCFCF;
+$neutral-50: #F7F7F7;
+//Header Background
+$neutral-800: #414141;
+$background: #F8F8F8;
+$warning-100: #FFF8EE;
+$primary-background-100: #D4EBFE;
+
+$primary-background-50: #E9F5FF;
+// Status Background ===========
+$error-background: #FEE7E7;
+
+
+$overlay-background: rgba(0, 0, 0, 0.2);
+// ========== Borders ============== 
+// Borders 
+$border-disable-readonly: 1px solid $neutral-200;
+// Border Radius 
+$border-radius-2: 2px;
+$border-radius-4: 4px;
+$border-radius-6: 6px;
+$border-radius-8: 8px;
+$border-radius-12: 12px;
+
+// Border Inputs 
+$normal-input-border: 1px solid $neutral-200;
+$focused-input-border: 1px solid $neutral-600;
+
+// Button Border 
+$border-1: 1px solid;
+$border-2: 2px solid;
+// Shadow 
+$boxShadow-sm:  0px 1px 2px 0px rgba(45, 54, 67, 0.05);
+$boxShadow-base:  0px 1px 2px 0px rgba(45, 54, 67, 0.04), 0px 2px 4px 0px rgba(45, 54, 67, 0.08);
+$boxShadow-md:  0px 2px 4px -2px rgba(45, 54, 67, 0.06), 0px 4px 8px -2px rgba(45, 54, 67, 0.08); 
+$boxShadow-lg: 0px 8px 11px -4px rgba(45, 54, 67, 0.04), 0px 20px 24px -4px rgba(45, 54, 67, 0.04);
+$boxShadow-xl: 0px 24px 50px -12px rgba(45, 54, 67, 0.12);
+$boxShadow-2xl: 0px 32px 64px -12px rgba(45, 54, 67, 0.14);
+
+//============= Spaceing =================
+$gap-2: 2px;
+$gap-4: 4px;
+$gap-6: 6px;
+$gap-8: 8px;
+$gap-10: 10px;
+$gap-12: 12px;
+$gap-14: 14px;
+$gap-16: 16px;
+$gap-18: 18px;
+
+
+$padding-2: 2px;
+$padding-4: 4px;
+$padding-3: 3px;
+$padding-6: 6px;
+$padding-8: 8px;
+$padding-10: 10px;
+$padding-12: 12px;
+$padding-13: 13px;
+$padding-16 :16px;
+$padding-20: 20px;
+// Margins 
+$margin-2: 2px;
+$margin-4: 4px;
+$margin-6: 6px;
+$margin-8: 8px;
+$margin-10: 10px;
+$margin-12: 12px;
+$margin-13: 13px;
+$margin-16: 16px;
+$margin-24: 24px;
+//================ Font Sizes =============
+$size-regular-10: 10px;
+$size-regular-12: 12px;
+$size-regular-14: 14px;
+$size-regular-16: 16px;
+$size-regular-18: 18px;
+$size-regular-20: 20px;
+
+// Overlay 
+$overlay: rgba(0, 0, 0, 0.25);
+
+// Line Hieght 
+$line-height: 20px

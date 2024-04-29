@@ -1,0 +1,64 @@
+<script setup>
+import TextBox from "~/components/DesignSystem/Inputs/TextBox.vue";
+import ComboBox from "~/components/DesignSystem/Inputs/ComboBox.vue";
+import Button from "~/components/DesignSystem/Buttons/Button.vue";
+import MoreDotsVertical from "~/components/Icons/MoreDotsVertical.vue";
+import Info from "~/components/Icons/Info.vue";
+const commonStore = useCommonStore();
+const offerPriceStore = useOfferPriceStore();
+const { Customers, Customer, CustomerDiscount } = storeToRefs(commonStore);
+const customerId = ref('');
+const {customerValidation} = defineProps(['customerValidation'])
+const emit = defineEmits(['customerHasDiscount'])
+function checkNameChange(inputValue) {
+  
+  // commonStore.ClearCustomer()
+}
+function hasDiscount(customerID, index) {
+  Customer.value.gun = customerID;
+  emit('customerHasDiscount', customerID, index)
+}
+</script>
+<template>
+  <div class="flex-column pr-8 pl-8 gap-6">
+    <div class="row flex-column-end gap-6">
+      <ComboBox
+        v-model:valueReturn="customerId"
+        :label="'العميل'"
+        :color="(Customer.isSuspend || customerValidation) ? 'danger' : undefined"
+        :leftInnerIconValue="Customer.isSuspend ? 'isSuspend' : ''"
+        :leftInnerIcon="Customer.isSuspend ? Info: ''"
+        :leftInnerIconToolTip="'هذا العميل موقف'"
+        :leftInnerIconToolTipPosition="'bottom'"
+        class="flex-grow"
+        :items="Customers || []"
+        :displayTitle="'name'"
+        :returnValue="'gun'"
+        v-model:input="Customer.name"
+        @setInput="checkNameChange"
+        @setItem="hasDiscount"/>
+      <Button
+        :onlyIcon="true"
+        :color="'neutral'"
+        :icon="MoreDotsVertical"
+      />
+    </div>
+    <div class="grid-2 gap-6">
+      <div>
+        <TextBox :label="'الرقم الضريبي'" v-model:input="Customer.tin" :type="'number'"/>
+      </div>
+      <div>
+        <TextBox :label="'رقم الجوال '" v-model:input="Customer.mobile" :type="'number'"/>
+      </div>
+    </div>
+    <div class="grid-2 gap-6">
+      <div>
+        <TextBox :label="'حد المديونية'" :readOnly="true"  :type="'number'"/>
+      </div>
+      <div>
+        <TextBox :label="'الرصيد المدين '" :readOnly="true"  :type="'number'"/>
+      </div>
+    </div>
+  </div>
+ 
+</template>

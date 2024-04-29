@@ -1,0 +1,342 @@
+@import '../variables';
+@import '../mixin';
+
+.input-group {
+    @include flex-column;
+    gap: $gap-4;
+    color: $neutral-800;
+    position: relative;
+
+    .tooltip-container {
+        flex: 1;
+    }
+}
+
+.input-container{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2px;
+    align-self: stretch;
+    border-radius: $border-radius-4;
+    border: $border-1 $neutral-200;
+    width: 100%;
+    height: 32px;
+    position: relative;
+    &.sm {
+        height: 30px;
+    }
+    &.invoice-total {
+        input {
+            background-color: $success-100;
+        }
+    }
+    input {
+        padding: $padding-8  $padding-6;
+        border: none;
+        color: $neutral-800;
+        outline-style: none;
+        background-color: transparent;
+        width: 100%;
+        border-radius: inherit;
+        font-size: $size-regular-14;
+        flex: 1 0 0;
+        align-self: stretch;
+        .sm {
+            font-size: $size-regular-12 !important;
+        }
+    }
+    .overlay-tooltip {
+        width: 100%;
+        height: 100%;
+        background-color: transparent;
+        position: absolute;
+        
+    }
+    &:focus-within{
+        border: $border-1 $neutral-600
+    }
+    
+    &.disabled {
+        background-color: $neutral-50 !important;
+        border: $border-1 $neutral-200 !important;
+        input {
+            color: $neutral-400;
+        }
+    }
+    &.readonly {
+        background-color: $neutral-50 !important;
+        border: $border-1 $neutral-200 !important;
+        input {
+            color: $neutral-800;
+        }
+    } 
+    &.danger {
+        background-color: $danger-100;
+        border: $border-1 $danger-800
+    }
+    &.warning {
+        background-color: $warning-100;
+        border: $border-1 $warning-800
+    }
+    .icons {
+        @include align-items-center;
+        gap: $gap-2 ;
+        padding-inline-end: $padding-6;
+        & .tooltip-container {
+            height: 16px;
+        }
+        svg {
+            color: $neutral-800;
+            height: 16px;
+            width: 16px;
+
+            path {
+                width: 100%;
+                height: 100%;
+            }
+        }
+    }
+    .blue-icon {
+        cursor: pointer;
+    }
+    .icon {
+        margin-inline-end: $padding-6;
+    }
+    
+}
+
+.textarea {
+    @extend .input-container;
+    height: 95px;
+    textarea {
+        padding: $padding-8 $padding-10;
+        border: none;
+        color: $neutral-800;
+        outline-style: none;
+        background-color: transparent;
+        width: 100%;
+        font-size: $size-regular-14;
+        flex: 1 0 0;
+        align-self: stretch;
+        resize: none;
+        
+    }
+}
+
+.check-container {
+    @include align-items-center;
+    display: inline-flex;
+    gap: $gap-8;
+    cursor: pointer;
+    .text {
+        font-size: 14px;
+        line-height: 16px;
+    }
+    &:hover {
+        .check {
+            border: $border-1 $primary-300;  
+            &.success {
+            border: $border-1 $success-400;   
+        }
+        }
+        
+        &.checked {
+            .check {
+                background-color: $primary-900;
+                border-color: $primary-900;
+                .circle {
+                    background-color: $primary-900;
+                    
+                }
+            }
+        }
+    }
+    .check {
+        display: inline-flex ;
+        width: 16px;
+        height: 16px;
+        border: $border-1 $neutral-400;
+        border-radius: $border-radius-4;
+       
+    }
+    &.checked {
+        .check {
+            background-color: $primary-700;
+            color: $white;
+            border-color: $primary-700;
+
+            &.success {
+                background-color: $success-900;
+                border-color: $success-900;
+            }
+        }
+    }
+    &.disabled {
+        .text {
+            color: $neutral-400;
+        }
+        .check {
+            border-color: $neutral-100;
+        }
+        cursor: text;
+        // اذا فيه لون اخر مثلا success  checke.success
+        &.checked {
+            .check {
+                border:$border-1 $primary-400 ;
+                background-color: $primary-400;
+                .circle {
+                    background-color: $primary-400;
+                    
+                }
+                border: none;
+            }
+        }
+    }
+    .radio {
+        border-radius: 50%;
+    }
+    &.checked .radio {
+        background-color: $primary-50 !important;
+        border-color: $primary-600;
+        display: flex;
+        @include center-horiz-vert;
+        .circle {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: $primary-700;
+        }
+    }
+    .check.primary {
+        border: $border-1 $primary-700;
+    }
+}
+
+.dropDown-container {
+    @include flex-column;
+    display: inline-flex;
+    gap: $gap-4;
+    font-size: $size-regular-14;
+    position: relative;
+    width: 100%;
+    &.disabled {
+        label {
+            color: $neutral-400;
+        }
+        .dropDown {
+            background-color: $neutral-50;
+            color: $neutral-400 !important;
+            pointer-events: none;
+            cursor: text;
+            
+        }
+       
+    }
+    .dropDown {
+        display: flex;
+        width: 100%;
+        padding: $padding-8 $padding-10;
+        justify-content: flex-end;
+        align-items: center;
+        gap: $gap-10;
+        flex-shrink: 0;
+        background-color:  $neutral-100;
+        border-radius: $border-radius-4;
+        cursor: pointer;
+        &:hover {
+            background-color: $neutral-200;
+            transition: all .3s ease-in-out;
+        }
+        .text {
+            flex: 1;
+        }
+
+        &.danger {
+            border: $border-1 $danger-700;
+        }
+        &.warning {
+            border: $border-1 $warning-700;
+        }
+        
+        
+        .icons {
+            gap: $gap-2;
+        }
+    }
+    & .dropMenu {
+        right: 0%;
+        width: 95%;
+    }
+    
+}
+.dropMenu {
+    background-color: $white;
+    position: absolute;
+    right: 0;
+    top: 102%;
+    width: 100%;
+    max-height: 220px;
+    overflow-y:auto ;
+    // transform: translateX(-50%);
+    padding: $padding-6;
+    border-radius: $border-radius-4;
+    border: $border-1 $neutral-100;
+    box-shadow: $boxShadow-sm;
+    z-index: 9999;
+    color: $neutral-900;
+    &.button {
+        width: max-content;
+    }
+    &.right {
+        right: auto;
+        left: 0;
+    }
+    &.left {
+        right: 0;
+        left: auto;
+    }
+    &.center {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    &.virtual {
+        max-height: none;
+    }
+}
+// Switch 
+.switch-container {
+    display: inline-flex;
+    @include flex-column;
+    gap: $gap-4;
+    
+    label {
+        gap: $gap-4;
+    }
+    .switch {
+        border: $border-1 $neutral-200;
+        border-radius: $border-radius-4;
+        padding: $padding-2;
+        @include center-horiz-vert;
+        gap: $gap-2;
+        span {
+            padding: $padding-6 $padding-10;
+            border-radius: $border-radius-4;
+            @include center-horiz-vert;
+            flex: 1 0 0;
+            cursor: pointer;
+            transition: all .2s ease-in-out;
+        }
+        .trueSide.active {
+            background-color: $primary-100;
+            color: $primary-700;
+            cursor: text;
+        }
+        .falseSide.active {
+            background-color: $danger-100;
+            color: $danger-700;
+            cursor: text;
+        }
+    }
+}

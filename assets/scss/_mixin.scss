@@ -1,0 +1,55 @@
+
+@mixin center-horiz-vert{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+@mixin flex-column{
+    display: flex;
+    flex-direction: column;
+}
+@mixin flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+@mixin align-items-center {
+    display: inline-flex;
+    align-items: center;
+}
+@mixin location($property) {
+    #{$property}: $property;
+  
+    [data-tooltip-location] & {
+      #{$property}: 100%;
+    }
+  }
+  @mixin hover_disabled($property,$color) {
+    & {
+        #{$property}: $color
+    }
+}
+@mixin grid {
+    display: grid;
+    gap: 16px;
+}
+@mixin grid-5 {
+    @include grid;
+    grid-template-columns:
+    repeat(auto-fit, minmax(18%, 1fr));
+}
+@mixin grid-4 {
+    @include grid;
+    grid-template-columns:
+    repeat(auto-fit, minmax(23%, 1fr));
+}
+@mixin grid-3 {
+    @include grid;
+    grid-template-columns:
+    repeat(auto-fit, minmax(30%, 1fr));
+}
+@mixin grid-2 {
+    @include grid;
+    grid-template-columns:
+    repeat(auto-fit, minmax(48%, 1fr));
+}

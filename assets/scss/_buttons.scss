@@ -1,0 +1,169 @@
+@import './variables';
+@import './mixin';
+
+.button-container {
+    position: relative;
+}
+button {
+    @include center-horiz-vert;
+    display: inline-flex;
+    padding: $padding-8 $padding-12 ;
+    gap: $gap-10;
+    color: $white;
+    border-radius: $border-radius-6;
+    border: none;
+    cursor: pointer;
+    transition: all .3s ease-in-out;
+    font-size: $size-regular-14;
+    background-color: $neutral-100;
+    color: $neutral-800;
+    position: relative;
+    .icon {
+        width: 1rem;
+        height: 1rem;
+
+        svg {
+            
+        }
+
+    }
+    &.block {
+        width: 100%;
+    }
+    &.onlyIcon {
+        padding: $padding-8;
+        width: 32px;
+        height: 32px;
+    }
+    &.small {
+        padding: $padding-6;
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+    &.outline {
+        background-color: $white;
+        border: $border-1 $neutral-200;
+        *{
+            color: $neutral-700 ;
+        }
+        &:hover {
+            border-color: $neutral-200;
+            *{
+                color: $neutral-900;
+            }
+        }
+    }
+
+    &.primary.icon.disabled {
+        color: $primary-300;
+        cursor: text;
+
+        &:hover {
+            color: $primary-300;
+        }
+    }
+
+    &.success.icon.disabled {
+        color: $success-400;
+        cursor: text;
+
+        &:hover {
+            color: $success-400;
+        }
+    }
+
+    &.danger.icon.disabled {
+        color: $danger-400;
+        cursor: text;
+
+        &:hover {
+            color: $danger-400
+        }
+    }
+
+    &.warning.icon.disabled {
+        color: $warning-400;
+        cursor: text;
+
+        &:hover {
+            color: $warning-400;
+        }
+    }
+
+    &.neutral.icon.disabled {
+        color: $neutral-100;
+        cursor: text;
+
+        &:hover {
+            color: $neutral-100;
+        }
+    }
+    
+    &.primary-icon {
+        background-color: transparent !important;
+        color: $primary-700;
+
+        &:hover {
+            background-color: transparent !important;
+            color: $primary-900;
+        }
+    }
+
+    &.success-icon {
+        background-color: transparent !important;
+        color: $success-700;
+
+        &:hover {
+            background-color: transparent !important;
+            color: $success-900;
+        }
+    }
+
+    &.primary {
+        background-color: $primary-700;
+        color: $white;
+    
+        &:hover {
+            background-color: $primary-900;
+        }
+    }
+    
+    &.neutral {
+        background-color: $neutral-100;
+        color: $neutral-700;
+    
+        &:hover {
+            background-color: $neutral-200;
+            color: $neutral-900;
+        }
+    }
+    
+    &.success {
+        background-color: $success-700;
+        color: $white;
+    
+        &:hover {
+            background-color: $success-900;
+        }
+    }
+    
+    &.danger {
+        background-color: $danger-700;
+        color: $white;
+    
+        &:hover {
+            background-color: $danger-900;
+        }
+    }
+    
+    &.warning {
+        background-color: $warning-700;
+        color: $white;
+    
+        &:hover {
+            background-color: $warning-900
+        }
+    }
+}
