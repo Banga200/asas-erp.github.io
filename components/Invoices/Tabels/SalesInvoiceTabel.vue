@@ -144,14 +144,13 @@ function handleDiscount(discount, index) {
     if (discount.includes("%")) {
       discount = discount.split("%")[0];
       discount = (parseFloat(discount) / 100) * NewItems.value[index].total;
-      NewItems.value[index].discount = parseFloat(
-        useHandleDiscount(
-          discount,
-          NewItems.value[index].quantity,
-          NewItems.value[index].total,
-          NewItems.value[index].price
-        ).toFixed(1)
+      NewItems.value[index].discount = useHandleDiscount(
+        discount,
+        NewItems.value[index].quantity,
+        NewItems.value[index].total,
+        NewItems.value[index].price
       );
+
       setNet(index);
     } else {
       const isNumber = isNaN(parseInt(discount)) ? false : true;
@@ -174,18 +173,16 @@ function setTotal(index) {
   if (props.recalculate) {
     for (let i = 0; i < NewItems.value.length - 1; i++) {
       let item = NewItems.value[i];
-      item.total = parseFloat((item.price * item.quantity).toFixed(1));
+      item.total = item.price * item.quantity;
       handleDiscount(item.discount, i);
       handleTax(i);
-      item.net = parseFloat(
-        (item.total - item.discount + item.taxValue).toFixed(1)
-      );
+      item.net = item.total - item.discount + item.taxValue;
     }
     emit("restRecalculate");
   } else {
-    NewItems.value[index].total = parseFloat(
-      (NewItems.value[index].price * NewItems.value[index].quantity).toFixed(1)
-    );
+    NewItems.value[index].total =
+      NewItems.value[index].price * NewItems.value[index].quantity;
+
     handleDiscount(NewItems.value[index].discount, index);
     handleTax(index);
 
@@ -197,20 +194,16 @@ function handleTax(index) {
     ItemDetails.value[index]?.currentTaxValue,
     NewItems.value[index].total
   );
-  NewItems.value[index].net = parseFloat(
-    (NewItems.value[index].total + NewItems.value[index].taxValue).toFixed(1)
-  );
+  NewItems.value[index].net =
+    NewItems.value[index].total + NewItems.value[index].taxValue;
 
   setNet(index);
 }
 function setNet(index) {
-  NewItems.value[index].net = parseFloat(
-    (
-      NewItems.value[index].total -
-      NewItems.value[index].discount +
-      NewItems.value[index].taxValue
-    ).toFixed(1)
-  );
+  NewItems.value[index].net =
+    NewItems.value[index].total -
+    NewItems.value[index].discount +
+    NewItems.value[index].taxValue;
 }
 function getSelectedWarehouseIndex(warehouseID, index) {
   let warhouseIndex = ItemDetails.value[
@@ -265,45 +258,44 @@ function canclePrice() {
   priceInput.focus();
   priceInput.select();
 }
-async function handleKeyPress(event, i) {
-  if (event.key.startsWith("F")) {
-    const functionKeyNumber = event.key.slice(1);
-    let item = Items.value.find((item) => {
+
+async function handleKeyPressF6(i) {
+  let item = Items.value.find((item) => {
+      return item.gun === NewItems.value[i].itemGUN;
+    });
+
+    if (NewItems.value[i].itemGUN) {
+      if (
+        item &&
+        item.type === 1 &&
+        ItemDetails.value[i]?.nonServiceData?.isHasAvailableAccessories
+      ) {
+        await commonStore.GetInsertAccessoriesItems(
+          NewItems.value[i].itemGUN,
+          route.meta.DocOrder
+        );
+      }
+    }
+  
+}
+async function handleKeyPressF5(i) {
+  let item = Items.value.find((item) => {
       return item.gun === NewItems.value[i].itemGUN;
     });
     if (NewItems.value[i].itemGUN) {
-      // كرت الصنف
-      if (functionKeyNumber === "1") {
-      }
-      // الأصناف الملحقة
-      if (functionKeyNumber === "6") {
-        if (
-          item &&
-          item.type === 1 &&
-          ItemDetails.value[i]?.nonServiceData?.isHasAvailableAccessories
-        ) {
-          await commonStore.GetInsertAccessoriesItems(
-            NewItems.value[i].itemGUN,
-            route.meta.DocOrder
-          );
-        }
-      }
-      // الأصناف البديلة
-      if (functionKeyNumber === "5") {
-        if (
-          item &&
-          item.type === 1 &&
-          ItemDetails.value[i]?.nonServiceData?.isHasAvailableAlternatives
-        ) {
-          emit("showAlternativeItems");
-          await commonStore.GetAlternativesItems(
-            NewItems.value[i].itemGUN,
-            route.meta.DocOrder
-          );
-        }
+      if (
+        item &&
+        item.type === 1 &&
+        ItemDetails.value[i]?.nonServiceData?.isHasAvailableAlternatives
+      ) {
+        emit("showAlternativeItems");
+        await commonStore.GetAlternativesItems(
+          NewItems.value[i].itemGUN,
+          route.meta.DocOrder
+        );
       }
     }
-  }
+ 
 }
 </script>
 <template>
@@ -331,7 +323,14 @@ async function handleKeyPress(event, i) {
         </td>
         <!-- الصنف  -->
         <td class="item-column">
-          <Popover :disableOnclick="true"  :position="'bottom-left'" :show="ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories || ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives">
+          <Popover
+            :disableOnclick="true"
+            :position="'bottom-left'"
+            :show="
+              ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories ||
+              ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives
+            "
+          >
             <Button
               :onlyIcon="true"
               :color="'neutral'"
@@ -345,28 +344,30 @@ async function handleKeyPress(event, i) {
                   text: 'كرت الصنف',
                   rightIcon: Statment,
                   value: '(F1)',
-                  disable: false
+                  disable: false,
                 },
                 {
                   id: 2,
                   text: 'الأصناف الملحقة',
                   rightIcon: Insert,
                   value: '(F6)',
-                  disabled: !ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories
+                  disabled:
+                    !ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories,
                 },
                 {
                   id: 3,
                   text: 'الأصناف البديلة',
                   rightIcon: Convert,
                   value: '(F5)',
-                  disabled: !ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives
+                  disabled:
+                    !ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives,
                 },
                 {
                   id: 4,
                   text: 'بحث متقدم',
                   rightIcon: Search,
                   value: '(Enter)',
-                  disabled: false
+                  disabled: false,
                 },
                 {
                   id: 5,
@@ -374,27 +375,36 @@ async function handleKeyPress(event, i) {
                   rightIcon: Delete,
                   color: 'danger',
                   value: '(Delete)',
-                  disabled: false
+                  disabled: false,
                 },
               ]"
-              
             />
-            <template v-slot:content >
-                <p v-if="ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories">أصناف ملحقة أضغط (F6)</p>
-                <p v-if="ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives"> أصناف بديلة أضغط (F5) </p>
+            <template v-slot:content>
+              <p
+                v-if="ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories"
+              >
+                أصناف ملحقة أضغط (F6)
+              </p>
+              <p
+                v-if="
+                  ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives
+                "
+              >
+                أصناف بديلة أضغط (F5)
+              </p>
             </template>
           </Popover>
-          
-
           <ComboBox
             @keyup.delete="removeItem(i)"
-            @keydown.prevent="handleKeyPress($event, i)"
+            @keydown.f5.prevent="handleKeyPressF5(i)"
+            @keydown.f6.prevent="handleKeyPressF6(i)"
             :size="'sm'"
             :color="props.itemValidation ? 'danger' : undefined"
             :class="{ firstItem: i === 0 }"
             v-model:valueReturn="item.itemGUN"
             v-model:input="item.name"
             :index="i"
+            :clearable="true"
             :bigData="true"
             :items="Items || []"
             :displayTitle="'name'"
@@ -433,6 +443,7 @@ async function handleKeyPress(event, i) {
             :selectFirstItem="true"
             :displayTitle="'name'"
             :returnValue="'gun'"
+            
             :placeholder="'المستودع'"
             :disabled="ItemDetails[i]?.type === 2"
             :leftInnerIcon="
@@ -458,7 +469,6 @@ async function handleKeyPress(event, i) {
         <td>
           <TextBox
             :size="'sm'"
-            :type="'number'"
             v-model:input="item.quantity"
             @setInput="handleQuantity"
             :color="
@@ -485,7 +495,8 @@ async function handleKeyPress(event, i) {
             @setInput="handlePrice"
             @changeInput="handlePriceChange"
             :index="i"
-            :type="'number'"
+            :inputToolTipText="item.unitPriceList[0]?.price"
+            :inputToolTipPosition="'bottom'"
             :menu="true"
             :menuItems="[
               {

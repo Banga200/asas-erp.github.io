@@ -286,7 +286,9 @@
     &:hover {
         background-color: $neutral-50;
     }
-
+    &.focus{
+        background-color: $neutral-50;
+    }
     &.disabled {
         color: $neutral-300;
     }
@@ -538,16 +540,13 @@
     }
 
     &.primary {
-        border: $border-2 $primary-700;
+     box-shadow: inset -2px 0 0 $primary-700, inset 0 -2px 0 $primary-700, inset 2px 0 0 $primary-700, inset 0 2px 0 $primary-700;
     }
 
     &.warning {
-        border: $border-2 $warning-700;
+        box-shadow: inset -2px 0 0  $warning-700, inset 0 -2px $warning-700, inset 2px 0 $warning-700, inset 0 2px $warning-700; 
     }
 
-    &.primary {
-        border: $border-2 $primary-700;
-    }
 
     &.dark * {
         color: $white !important;
@@ -631,7 +630,7 @@
 }
 .model {
     @extend .dialog;
-    width: 100%;
+    min-width: 300px;
     max-width: none;
 }
 // Pagenation Items 

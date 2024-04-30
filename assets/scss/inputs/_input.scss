@@ -96,6 +96,9 @@
                 height: 100%;
             }
         }
+        &.combobox {
+            padding-inline-end: 0;
+        }
     }
     .blue-icon {
         cursor: pointer;
@@ -339,4 +342,8 @@
             cursor: text;
         }
     }
+}
+
+.closeIcon {
+    cursor: pointer;
 }

@@ -154,6 +154,22 @@ async function AddNewInvoice() {
 }
 function cancel() {
   commonStore.ClearEverythings();
+  footerDetails.value = {
+  itemsCount: 0,
+  quantityCount: 0,
+  weight: 0,
+  deliveryDate: "",
+  time: "",
+  today: "",
+}
+  footerFields.value = {
+  total: 0,
+  totalBeforeTax: 0,
+  discount: 0,
+  extarDiscount: 0,
+  taxValue: 0,
+  invoiceValue: 0,
+}
   isNew.value = true;
 }
 // إذا كان فيه حسم لدى العميل يتم إظهار تنبيه
@@ -391,11 +407,11 @@ function calculateInvoiceFooter() {
   footerDetails.value.itemsCount = NewItems.value.length - 1;
   footerDetails.value.quantityCount = parseInt(quantityCount);
   // left Side
-  footerFields.value.total = parseFloat(total.toFixed(2));
-  footerFields.value.totalBeforeTax = parseFloat((total - discount).toFixed(2));
-  footerFields.value.taxValue = parseFloat(taxValue.toFixed(2));
-  footerFields.value.discount = parseFloat(discount.toFixed(2));
-  footerFields.value.invoiceValue = parseFloat(net.toFixed(2));
+  footerFields.value.total = total;
+  footerFields.value.totalBeforeTax = total - discount;
+  footerFields.value.taxValue = taxValue;
+  footerFields.value.discount = discount
+  footerFields.value.invoiceValue = net
 }
 function handleDiscount(discount) {
   discount = discount ? discount : footerDetails.value.discount;
@@ -448,9 +464,7 @@ function setDiscountToAllItems(discount) {
         element.total,
         element.price
       );
-      element.net = parseFloat(
-        (element.total - element.discount + element.taxValue).toFixed(1)
-      );
+      element.net = element.total - element.discount + element.taxValue
     }
   }
 }
@@ -700,6 +714,7 @@ async function insertAlternative() {
                     :selectItem="
                       PriceType ? PriceType[GeneralFields.priceType - 1] : null
                     "
+                    :noFilter="true"
                     :items="PriceType"
                     v-model:valueReturn="GeneralFields.priceType"
                     :selectFirstItem="true"
@@ -724,6 +739,7 @@ async function insertAlternative() {
                     :items="SalesMen || []"
                     :displayTitle="'name'"
                     :returnValue="'gun'"
+                    :clearable="true"
                     :selectItem="SalesMen ? SalesMen[salemanIndex] : null"
                     v-model:input="salemanField"
                     v-model:valueReturn="GeneralFields.salesmanGUN"

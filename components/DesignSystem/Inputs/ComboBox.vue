@@ -37,6 +37,7 @@ const props = defineProps([
   "rightIcon",
   "leftIcon",
   "badgeText",
+  "noFilter",
   "size",
   "isPage",
   "fullWidth",
@@ -48,9 +49,9 @@ const props = defineProps([
   "leftInnerIconToolTip",
   "leftInnerIconToolTipPosition",
   "DropArrowIcon",
-  "selectItem"
+  "selectItem",
 ]);
-
+const focusedIndex = ref(-1)
 const inputElement = ref(null);
 const isOpen = ref(false);
 let observer = null;
@@ -71,6 +72,7 @@ watch(
   () => props.items,
   (value) => {
     if (value) {
+      input.value = ''
       if (value.length > 0) {
         if (props.selectFirstItem) {
           setFirstItem(value[0]);
@@ -80,16 +82,33 @@ watch(
   }
 );
 watch(input, (newValue) => {
+  setInput(newValue);
+
   if (newValue === "") {
     selectedItem.value = "";
     valueReturn.value = "";
   }
 });
-watch(() => props.selectItem, (value) => {
-  if (value) {
-    setFirstItem(value)
+watch(
+  () => props.selectItem,
+  (value) => {
+    if (value) {
+      setFirstItem(value);
+    }
   }
-})
+);
+let filterItem = computed(() => {
+  if (props.noFilter) {
+    return props.items;
+  }
+  if (selectedItem.value) {
+    return props.items;
+  } else {
+    return props.items.filter((item) => {
+      return item[props.displayTitle].includes(input.value);
+    });
+  }
+});
 function observeTrigger() {
   observer = new IntersectionObserver(
     (entity) => {
@@ -114,6 +133,9 @@ function setItem(text, value) {
     inputElement.value.focus();
     emit("setItem", value, props.index);
   }
+  else {
+    inputElement.value.focus();
+  }
 }
 
 function setInput(value) {
@@ -122,8 +144,9 @@ function setInput(value) {
   if (value === "") {
     selectedItem.value = "";
   }
-
-  emit("getItemBySearch", input.value);
+  if (props.isPage) {
+    emit("getItemBySearch", input.value);
+  }
 }
 function unfocus() {
   setTimeout(() => {
@@ -143,6 +166,32 @@ function setFirstItem(item) {
   selectedItem.value = item[props.returnValue];
   valueReturn.value = item[props.returnValue];
   emit("setItem", item[props.returnValue], props.index);
+}
+function clearInput() {
+  input.value = "";
+}
+function handleKeydown(event) {
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    
+    if (event.key === "ArrowDown") {
+      console.log(document.activeElement)
+      focusedIndex.value = (focusedIndex.value + 1) % props.items.length;
+    } else{
+      focusedIndex.value =
+        (focusedIndex.value - 1 + props.items.length) % props.items.length;
+    }
+    
+  }
+  else if (event.key === "Enter") {
+    if (props.items[focusedIndex.value]?.[props.displayTitle] && props.items[focusedIndex.value]?.[props.returnValue]) {
+      setItem(props.items[focusedIndex.value]?.[props.displayTitle],props.items[focusedIndex.value]?.[props.returnValue] )
+      
+    }
+  }
+}
+function handleLinkKeydown(index) {
+  focusedIndex.value = index;
 }
 </script>
 <template>
@@ -165,6 +214,8 @@ function setFirstItem(item) {
       @click.stop="isOpen = !isOpen"
     >
       <input
+      @keydown.exact="handleKeydown"
+      tabindex="0"
         ref="inputElement"
         type="input"
         :disabled="disabled"
@@ -173,13 +224,13 @@ function setFirstItem(item) {
         v-model="input"
         @keydown.ctrl="openAdvanceSearch"
         :readonly="readOnly"
-        @input="setInput($event.target.value)"
+        class="combobox"
       />
-      <div class="icon" @click="clearInput" v-if="clearable">
-        <CloseIcon class="closeIcon" />
+      <div v-if="input && clearable" >
+        <CloseIcon class="closeIcon" @click="clearInput" />
       </div>
 
-      <div class="icons" v-if="leftInnerIcon || badgeText">
+      <div class="icons combobox" v-if="leftInnerIcon || badgeText">
         <Badge :text="badgeText" v-if="badgeText" :color="badgeColor" />
         <!-- Left Inner Icon  -->
         <ToolTip
@@ -201,35 +252,46 @@ function setFirstItem(item) {
       </div>
     </div>
     <!-- Menu  -->
-    <div class="dropMenu" :class="{'virtual': props.bigData}" v-show="isOpen && !disabled">
+    <div
+      class="dropMenu"
+      :class="{ virtual: props.bigData }"
+      v-show="isOpen && !disabled"
+      >
       <div v-if="items && !bigData">
-        
-          <Item
-          v-for="(item) in items"
+        <Item
+          v-for="item in filterItem"
           :key="item[props.returnValue]"
           :text="item[props.displayTitle]"
-          :leftInnerIcon="item[props.leftInnerIconItem] ? leftInnerIcon : undefined"
-          :leftInnerIconToolTip="item[props.leftInnerIconItem] ? leftInnerIconToolTip : undefined"
+          :leftInnerIcon="
+            item[props.leftInnerIconItem] ? leftInnerIcon : undefined
+          "
+          :leftInnerIconToolTip="
+            item[props.leftInnerIconItem] ? leftInnerIconToolTip : undefined
+          "
           :leftInnerIconToolTipPosition="'bottom-right'"
           :selected="item[props.returnValue] === selectedItem"
-          @click.stop="setItem(item[props.displayTitle], item[props.returnValue])"
-        />
+          @click.stop="
+            setItem(item[props.displayTitle], item[props.returnValue])
+          "
+          @keydown.prevent="handleLinkKeydown(index)"
+          :class="{focus: filterItem[focusedIndex]?.[props.returnValue] === item[props.returnValue]}"/>
         <div class="trigger" v-if="isPage">جاري جلب الأصناف...</div>
       </div>
-      
-          
+
       <DynamicScroller
         v-if="items && bigData"
-        :items="items"
+        :items="filterItem"
         :keyField="returnValue"
         :min-item-size="32"
       >
         <template v-slot="{ item }">
           <Item
+          :class="{focus: filterItem[focusedIndex]?.[props.returnValue] === item[props.returnValue]}"
             :key="item[props.returnValue]"
             :text="item[props.displayTitle]"
             :selected="item[props.returnValue] === selectedItem"
-            @click="setItem(item[props.displayTitle], item[returnValue])"
+            @click.stop="setItem(item[props.displayTitle], item[returnValue])"
+            @keydown.prevent="handleLinkKeydown(index)"
           />
         </template>
         <template v-slot:after v-if="isPage">

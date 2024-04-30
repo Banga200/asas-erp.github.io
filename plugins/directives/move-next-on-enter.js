@@ -5,13 +5,17 @@ export default defineNuxtPlugin((nuxtApp) => {
         if (e.key === 'Enter') {
           e.preventDefault();
             const inputs = Array.from(document.querySelectorAll('input'));
-            const index = inputs.indexOf(el.querySelector('input'));
-            if (index < inputs.length && inputs[index].value.trim()) {
-              inputs[index + 1].focus();
-              inputs[index + 1].select();
+            let index = inputs.indexOf(el.querySelector('input'));
+              while (inputs[index + 1].hasAttribute('disabled') || inputs[index + 1].hasAttribute('readonly') ) {
+                index++;
+                inputs[index + 1].focus();
+              }
 
+             if (index < inputs.length && inputs[index + 1].value.trim()) {
+                
+                inputs[index + 1].select();
+              }
               
-            }
         }
       });
     },

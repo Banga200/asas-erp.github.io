@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import {ref} from 'vue';
 export const useOfferPriceStore = defineStore('offerPrice', () => {
     const {handleCodesMessage} = useHandleCodes();
+    const {successHandle} = useNotify()
     const commonStore = useCommonStore();
     const {GeneralFields} = storeToRefs(commonStore)
     
@@ -27,7 +28,9 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                 method: 'POST',
                 body: JSON.stringify(generaFields)
             }).then(res => {
-                console.log(res)
+                if (res.code === "200") {
+                    successHandle("تم حفظ الفاتورة بنجاح")
+                }
             }).catch(error => {console.log(error)})
             
             

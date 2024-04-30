@@ -25,6 +25,7 @@ function hasDiscount(customerID, index) {
       <ComboBox
         v-model:valueReturn="customerId"
         :label="'العميل'"
+        :clearable="true"
         :color="(Customer.isSuspend || customerValidation) ? 'danger' : undefined"
         :leftInnerIconItem="'isSuspend'"
         :leftInnerIcon="Customer.isSuspend ? Info: ''"

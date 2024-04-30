@@ -192,9 +192,7 @@
   .container {
     max-width: 960px;
   }
-  .overlay.fixed .model {
-    width: 644px;
-  }
+  
   .col-lg-1 {
     -ms-flex: 0 0 8.333333%;
     flex: 0 0 8.333333%;
@@ -273,9 +271,9 @@
   .container {
     max-width: 1140px;
   }
-  .overlay.fixed .model {
-    width: 644px;
-  }
+  // .overlay.fixed .model {
+  //   width: 644px;
+  // }
   .col-xl-auto {
     -ms-flex: 0 0 auto;
     flex: 0 0 auto;

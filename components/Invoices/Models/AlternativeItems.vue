@@ -15,7 +15,7 @@ function selectAlternative(itemId, index) {
 }
 </script>
 <template>
-    <div class="flex-column normal-table mb-8 gap-16">
+    <div class="flex-column normal-table model-table mb-8 gap-16">
         <TextBox :leftIcon="Search" :placeholder="'رقم ,اسم الصنف'"/>
         <table >
             <thead>
