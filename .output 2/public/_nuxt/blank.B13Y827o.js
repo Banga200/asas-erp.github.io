@@ -1,1 +1,0 @@
-import{_ as o,c as t,O as n,o as s}from"./entry.LfecROsi.js";const c={},r={id:"login"};function a(e,_){return s(),t("section",r,[n(e.$slots,"default")])}const d=o(c,[["render",a]]);export{d as default};
