@@ -142,6 +142,7 @@ export const useCommonStore = defineStore("common", () => {
         .then((res) => {
           if (res.code === "200") {
             // إضافة الوحدات والمستودعات الخاصة بالصنف المختار
+            
             if (itemName) {
               alert(itemId)
               NewItems.value[index].name = itemName;

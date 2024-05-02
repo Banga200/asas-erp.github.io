@@ -51,11 +51,13 @@ const props = defineProps([
   "DropArrowIcon",
   "selectItem",
 ]);
+
 const focusedIndex = ref(-1)
 const inputElement = ref(null);
 const isOpen = ref(false);
 let observer = null;
 onMounted(() => {
+  input.value = ''
   window.addEventListener(
     "click",
     () => {
@@ -72,7 +74,6 @@ watch(
   () => props.items,
   (value) => {
     if (value) {
-      input.value = ''
       if (value.length > 0) {
         if (props.selectFirstItem) {
           setFirstItem(value[0]);
@@ -169,6 +170,7 @@ function setFirstItem(item) {
 }
 function clearInput() {
   input.value = "";
+  setInput('')
 }
 function handleKeydown(event) {
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -268,6 +270,7 @@ function handleLinkKeydown(index) {
           :leftInnerIconToolTip="
             item[props.leftInnerIconItem] ? leftInnerIconToolTip : undefined
           "
+          @mousedown.stop="setItem(item[props.displayTitle], item[props.returnValue])" 
           :leftInnerIconToolTipPosition="'bottom-right'"
           :selected="item[props.returnValue] === selectedItem"
           @click.stop="
@@ -292,7 +295,7 @@ function handleLinkKeydown(index) {
             :selected="item[props.returnValue] === selectedItem"
             @click.stop="setItem(item[props.displayTitle], item[returnValue])"
             @keydown.prevent="handleLinkKeydown(index)"
-          />
+            @mousedown.stop="setItem(item[props.displayTitle], item[props.returnValue])"/>
         </template>
         <template v-slot:after v-if="isPage">
           <div class="trigger" v-if="items">جاري جلب الأصناف...</div>

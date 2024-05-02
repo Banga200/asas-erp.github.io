@@ -31,6 +31,9 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                 if (res.code === "200") {
                     successHandle("تم حفظ الفاتورة بنجاح")
                 }
+                else {
+                    handleCodesMessage(res.code, res.data.viewMessage);
+                }
             }).catch(error => {console.log(error)})
             
             

@@ -89,9 +89,9 @@ async function handleUnit(unitID, index) {
   );
   if (unitIndex >= 0) {
     emit("clearValidation");
-    let item = Items.value.find((item) => {
-      return item.gun === NewItems.value[index].itemGUN;
-    });
+    // let item = Items.value.find((item) => {
+    //   return item.gun === NewItems.value[index].itemGUN;
+    // });
     let unit = await ItemDetails.value[index]?.nonServiceData?.units[unitIndex];
     await commonStore.GetItemQuantityByWarehouse(
       NewItems.value[index].itemGUN,
@@ -261,41 +261,44 @@ function canclePrice() {
 
 async function handleKeyPressF6(i) {
   let item = Items.value.find((item) => {
-      return item.gun === NewItems.value[i].itemGUN;
-    });
+    return item.gun === NewItems.value[i].itemGUN;
+  });
 
-    if (NewItems.value[i].itemGUN) {
-      if (
-        item &&
-        item.type === 1 &&
-        ItemDetails.value[i]?.nonServiceData?.isHasAvailableAccessories
-      ) {
-        await commonStore.GetInsertAccessoriesItems(
-          NewItems.value[i].itemGUN,
-          route.meta.DocOrder
-        );
-      }
+  if (NewItems.value[i].itemGUN) {
+    if (
+      item &&
+      item.type === 1 &&
+      ItemDetails.value[i]?.nonServiceData?.isHasAvailableAccessories
+    ) {
+      await commonStore.GetInsertAccessoriesItems(
+        NewItems.value[i].itemGUN,
+        route.meta.DocOrder
+      );
     }
-  
+  }
 }
 async function handleKeyPressF5(i) {
   let item = Items.value.find((item) => {
-      return item.gun === NewItems.value[i].itemGUN;
-    });
-    if (NewItems.value[i].itemGUN) {
-      if (
-        item &&
-        item.type === 1 &&
-        ItemDetails.value[i]?.nonServiceData?.isHasAvailableAlternatives
-      ) {
-        emit("showAlternativeItems");
-        await commonStore.GetAlternativesItems(
-          NewItems.value[i].itemGUN,
-          route.meta.DocOrder
-        );
-      }
+    return item.gun === NewItems.value[i].itemGUN;
+  });
+  if (NewItems.value[i].itemGUN) {
+    if (
+      item &&
+      item.type === 1 &&
+      ItemDetails.value[i]?.nonServiceData?.isHasAvailableAlternatives
+    ) {
+      emit("showAlternativeItems");
+      await commonStore.GetAlternativesItems(
+        NewItems.value[i].itemGUN,
+        route.meta.DocOrder
+      );
     }
- 
+  }
+}
+function handleKeyupDelete(event, index) {
+  if (event.key === "Delete") {
+    removeItem(index)
+  } 
 }
 </script>
 <template>
@@ -395,7 +398,7 @@ async function handleKeyPressF5(i) {
             </template>
           </Popover>
           <ComboBox
-            @keyup.delete="removeItem(i)"
+            @keyup.delete="handleKeyupDelete($event,i)"
             @keydown.f5.prevent="handleKeyPressF5(i)"
             @keydown.f6.prevent="handleKeyPressF6(i)"
             :size="'sm'"
@@ -443,7 +446,6 @@ async function handleKeyPressF5(i) {
             :selectFirstItem="true"
             :displayTitle="'name'"
             :returnValue="'gun'"
-            
             :placeholder="'المستودع'"
             :disabled="ItemDetails[i]?.type === 2"
             :leftInnerIcon="

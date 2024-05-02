@@ -18,6 +18,7 @@ import Calendar from "~/components/Icons/Calendar.vue";
 import Time from "~/components/Icons/Time.vue";
 import Info from "../Icons/Info.vue";
 import Avatar from "~/components/DesignSystem/Generals/Avatar.vue";
+import DatePicker from "~/components/DesignSystem/Inputs/DatePicker.vue"
 import User from "~/components/Icons/User.vue";
 import Tab from "~/components/DesignSystem/Generals/Tab.vue";
 import Post from "~/components/DesignSystem/Generals/Post.vue";
@@ -179,7 +180,7 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
     return customer.gun === customerID;
   });
   if (selectedCustomerIndex >= 0) {
-    if (NewItems.value[0].itemGUN !== '') {
+    if (NewItems.value[0].itemGUN) {
       const selectedCustomer = { ...Customers.value[selectedCustomerIndex] };
     Customer.value = selectedCustomer;
     if (isInoviceTypeChange) {
@@ -268,17 +269,15 @@ async function checkInvoiceChanges(isCash) {
       flag = true;
       NewItems.value[index].forSale = false;
     }
-  }
-  if (flag) {
+    if (flag) {
     notForSale.value = true;
   } else {
     notForSale.value = true;
-    for (let index = 0; index < NewItems.value.length - 1; index++) {
-      const element = NewItems.value[index];
-      element.forSale = null;
-    }
+    element.forSale = true;
     notForSale.value = false;
   }
+  }
+  
 }
 // اذا صنف ليس للبيع يتم حذفه بعد الضغط على زر "حذف الكل"
 function handleNoneSaleItems() {
@@ -473,7 +472,7 @@ function setDiscountToAllItems(discount) {
 function setPriceOnItems() {}
 
 function handlePriceType() {
-  if (!isCustomerPriceCheck) {
+  if (!isCustomerPriceCheck.value) {
     if (NewItems.value[0].itemGUN) {
       if (Customer.value.defaultPrice !== GeneralFields.value.priceType) {
         priceTypeDialog.value = true;
@@ -493,7 +492,7 @@ function setPriceType() {
     NewItems.value[index].price =
       NewItems.value[index].unitPriceList[type - 1]?.price;
   }
-  if (!isCustomerPriceCheck) {
+  if (!isCustomerPriceCheck.value) {
     handleDiscount();
   }
   recalculate.value = true;
@@ -584,6 +583,11 @@ async function insertAlternative() {
   );
   alternativeDialog.value = false;
 }
+
+
+
+
+
 </script>
 <template>
   <div class="row">
@@ -697,7 +701,8 @@ async function insertAlternative() {
                 />
               </div>
               <div>
-                <TextBox :label="'التاريخ'" :leftIcon="Calendar" />
+
+                <DatePicker :label="'التاريخ'" :leftIcon="Calendar" />
               </div>
               <div>
                 <TextBox :label="'الوقت'" :leftIcon="Time" />

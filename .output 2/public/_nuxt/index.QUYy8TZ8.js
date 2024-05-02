@@ -1,0 +1,1 @@
+import{I as o}from"./Invoice.DQ3uDAMV.js";import{g as r,o as e}from"./entry.LfecROsi.js";import"./Tab.CXdKEirn.js";import"./TextBox.uVFtYDLD.js";import"./Avatar.BD0StHdv.js";const _={__name:"index",setup(t){return(c,n)=>(e(),r(o,{ReturnInvoice:!0}))}};export{_ as default};

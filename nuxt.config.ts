@@ -4,16 +4,16 @@ export default defineNuxtConfig({
    
   },
   nitro: {
-    
+    ignore: ['/lib/js/*.map', '**/*.map'], // Add other source map patterns if needed
   },
   app:{
     
     head: {
+      
       htmlAttrs: {
         dir: 'rtl',
         lang: 'ar',
       },
-      
     },
   },
   plugins: ['~/plugins/directives/move-next-on-enter.js'],

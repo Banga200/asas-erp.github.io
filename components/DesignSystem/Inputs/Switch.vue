@@ -15,7 +15,6 @@ const falseSide = ref(false);
 function toggle(value) {
   // false = نقدي  /true = اجل
   clearStatus();
-
   value ? (trueSide.value = true) : (falseSide.value = true);
   input.value = value;
   emit('changeSwitch', value)
@@ -45,13 +44,13 @@ function clearStatus() {
       <span
         class="trueSide"
         :class="[{ active: trueSide }]"
-        @click="toggle(true)"
+        @click="!trueSide ? toggle(true): ''"
         >{{ trueText }}</span
       >
       <span
         class="falseSide"
         :class="[{ active: falseSide }]"
-        @click="toggle(false)"
+        @click="!falseSide ? toggle(false) : ''"
         >{{ falseText }}</span
       >
     </div>

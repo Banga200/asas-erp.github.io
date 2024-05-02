@@ -1,0 +1,1 @@
+import{u as e}from"./vue.f36acd1f.BD777Fhx.js";import{u as t,I as o}from"./Invoice.DQ3uDAMV.js";import{g as r,o as s}from"./entry.LfecROsi.js";import"./Tab.CXdKEirn.js";import"./TextBox.uVFtYDLD.js";import"./Avatar.BD0StHdv.js";const S={__name:"index",setup(a){return t().GetItems(),e({title:"فاتورة مبيعات"}),(c,i)=>(s(),r(o,{SalesInvoice:!0}))}};export{S as default};
