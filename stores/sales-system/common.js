@@ -29,7 +29,9 @@ export const useCommonStore = defineStore("common", () => {
     salesmanGUN: "",
     no: '',
     isCash: true,
-    dateTime: "2024-04-17T08:53:05.266Z",
+    dateTime: "",
+    time: '', // يتم حذفها قبل الارسال
+    date: '', // يتم حذفها قبل الارسال
     isTaxApplied: true,
     note: "",
     priceType: 1,

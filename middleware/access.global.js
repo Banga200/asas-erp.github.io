@@ -1,18 +1,22 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const { errorHandle } = useNotify();
-  let user = useCookie("user");
-  if (user.value) {
+  // let user = useCookie("user");
+  let user = null
+  if (process.client) {
+    user = JSON.parse(localStorage.getItem('user'))
+  }
+  if (user) {
     if (to.meta.page === "Home") {
       return;
     } else {
-      if (user.value.inventoryCanAccessModules[to.meta.userAccess] === false) {
+      if (user.inventoryCanAccessModules[to.meta.userAccess] === false) {
         if (to.href === from.href) {
           return navigateTo("/");
         }
         errorHandle("ليس لديك صلاحية الدخول");
         return abortNavigation();
       } else if (
-        user.value.purchaseCanAccessModules[to.meta.userAccess] === false
+        user.purchaseCanAccessModules[to.meta.userAccess] === false
       ) {
         if (to.href === from.href) {
           return navigateTo("/");
@@ -20,7 +24,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         errorHandle("ليس لديك صلاحية الدخول");
         return abortNavigation();
       } else if (
-        user.value.salesCanAccessModules[to.meta.userAccess] === false
+        user.salesCanAccessModules[to.meta.userAccess] === false
       ) {
         if (to.href === from.href) {
           return navigateTo("/");

@@ -13,8 +13,8 @@ const isOpen = ref(false);
 const selectedItem = ref(null);
 let date = new Date();
 onMounted(() => {
-  
-  input.value = date.toISOString().substring(0 , 10);
+    console.log(date.toTimeString().slice(0, -3))
+  input.value = date.toTimeString().split(' ')[0]
   window.addEventListener("click", () => {
     isOpen.value = false;
   });
@@ -78,7 +78,7 @@ const {
 
 
 function setInput(value) {
-  input.value = value
+  input.value = value;
   emit('setInput', value, index);
 }
 function changeInput(value) {
@@ -91,11 +91,11 @@ function changeInput(value) {
 <template>
   <div class="input-group TextBox" :class="[{ 'full-width': fullWidth }]" >
       <label v-if="label">{{ label }}</label>
-      <div class="input-container datepicker" :class="[size,color, background, {'disabled': disabled}, {'readonly': readOnly}]">
+      <div class="input-container time" :class="[size,color, background, {'disabled': disabled}, {'readonly': readOnly}]">
         
           <input
-          type="date"
           
+          type="time"
           :disabled="disabled"
           :placeholder="placeholder"
           v-model="input"

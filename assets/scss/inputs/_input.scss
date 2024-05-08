@@ -107,6 +107,22 @@
         margin-inline-end: $padding-6;
     }
     
+    &.datepicker, &.time
+     {
+        input{
+            padding: 8px 6px 8px 28px;
+        }
+        &.time input {
+            padding: 8px 6px 8px 30px;
+            font-size: 12px;
+        }
+        .icons {
+            position: absolute;
+            left: 0;
+            background-color: transparent
+        }
+     } 
+    
 }
 
 .textarea {
@@ -320,7 +336,7 @@
     .switch {
         border: $border-1 $neutral-200;
         border-radius: $border-radius-4;
-        padding: $padding-2;
+        padding: $padding-1;
         @include center-horiz-vert;
         gap: $gap-2;
         span {
@@ -346,4 +362,25 @@
 
 .closeIcon {
     cursor: pointer;
+}
+
+input[type="date"] {
+    
+}
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-inner-spin-button,
+input[type="time"]::-webkit-calendar-picker-indicator
+ {
+    background: transparent;
+    bottom: 0;
+    color: transparent;
+    cursor: pointer;
+    height: 100%;
+    left: -10px;
+    position: absolute;
+    top: 0;
+    width: 25%;
+    z-index: 999;
+    
 }

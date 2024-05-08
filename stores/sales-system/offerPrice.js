@@ -93,7 +93,9 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             }
         }
         isCustomerValid ? true : generaFields.customer
-        delete generaFields.totalDiscount
+        delete generaFields.totalDiscount;
+        delete generaFields.date;
+        delete generaFields.time;
         generaFields.items = Items
         
         

@@ -189,7 +189,7 @@ const items = [
             child: [],
             link: "/sales-system/salesInvoice",
           },
-          { text: "فاتورة مرتجع المبيعات", icon: "", child: [], link: "" },
+          { text: "فاتورة مرتجع المبيعات", icon: "", child: [], link: "/sales-system/returnInvoice" },
           { text: "العملاء", icon: "", child: [], link: "" },
           {
             text: "حجز بضاعة (بدل الحجز الداخلي)",

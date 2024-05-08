@@ -1,116 +1,149 @@
 import { defineStore } from "pinia";
 import { useRouter } from "vue-router";
 export const useUserStore = defineStore("user", () => {
-  const {handleCodesMessage} = useHandleCodes();
-  const {errorHandle} = useNotify()
+  const { handleCodesMessage } = useHandleCodes();
+  const { errorHandle } = useNotify();
   const router = useRouter();
   // State
   const User = ref(null);
   const Token = ref(null);
-  const Permissions = ref(null)
+  const Permissions = ref(null);
   const loading = ref(false);
   async function Login(payload) {
     try {
       const response = await useServerFetch("/management/userAccount/login", {
         headers: {
-          language: 'ar',
+          language: "ar",
         },
         method: "POST",
         body: JSON.stringify(payload),
       })
         .then((res) => {
-          if (res.code === '200') {
-            setTokenToCookie(res.data.viewData.token, res.data.viewData.tokenExpiresOn);
+          if (res.code === "200") {
+            setTokenToCookie(
+              res.data.viewData.token,
+              res.data.viewData.tokenExpiresOn
+            );
             setUser(res.data.viewData);
-          }
-          else {
-            handleCodesMessage(res.code, res.data[0] ? res.data[0].viewMessage : '');
+          } else {
+            handleCodesMessage(
+              res.code,
+              res.data[0] ? res.data[0].viewMessage : ""
+            );
           }
         })
         .catch((error) => {
           console.log(error);
         });
-    } catch (error) {console.log(error)}
+    } catch (error) {
+      console.log(error);
+    }
   }
   async function LogOut() {
     try {
       const response = await useServerFetch("/management/userAccount/logout", {
-        headers: {
-          language: 'ar',
-          "Authorization": `Bearer ${Token.value}`
-        },
         method: "POST",
       })
         .then((res) => {
-          if (res.code === '200') {
-            router.push('/login');
+          if (res.code === "200") {
+            router.push("/login");
             clearUser();
-          }
-          else {
-            handleCodesMessage(res.code, res.data[0] ? res.data[0].viewMessage : '');
+          } else {
+            handleCodesMessage(
+              res.code,
+              res.data[0] ? res.data[0].viewMessage : ""
+            );
           }
         })
         .catch((error) => {
           console.log(error);
         });
-    } catch (error) {console.log(error)}
+    } catch (error) {
+      console.log(error);
+    }
   }
   async function CheckPermissions(id) {
     try {
       await useServerFetch("/management/userAccount/permissions", {
         params: {
-          ModuleId: id
-        }
-      }).then(res => {
-        if (res.code === '200') {
-          if(!res.data.viewData.canAccess) {
-            router.push('/');
+          ModuleId: id,
+        },
+      }).then((res) => {
+        if (res.code === "200") {
+          if (!res.data.viewData.canAccess) {
+            router.push("/");
             Permissions.value = res.data.viewData;
-            errorHandle("ليس لديك صلاحية الدخول")
-          }
-          else{
+            errorHandle("ليس لديك صلاحية الدخول");
+          } else {
             Permissions.value = res.data.viewData;
           }
-        }
-        else {
-          console.log(res)
+        } else {
           handleCodesMessage(res.code, res.data[0]?.viewMessage);
         }
-      })
+      });
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
   function setTokenToCookie(token, expire) {
-    const expireTokenDate = new Date(expire);
-    const cookie = useCookie('token', {
-      maxAge: (expireTokenDate.getTime() - Date.now()) / 1000
-    })
-    cookie.value = token;
-    Token.value = token
-    if (cookie.value) {
-      router.push('/')
+    // const cookie = useCookie('token', {
+    //   maxAge: (expireTokenDate.getTime() - Date.now()) / 1000,
+
+    // })
+    if (process.client) {
+      setWithExpiry("token", token, expire);
     }
-    
+    // cookie.value = token;
+    Token.value = token;
+    if (token) {
+      router.push("/");
+    }
+  }
+  function setWithExpiry(key, value, expire) {
+    const expireTokenDate = new Date(expire);
+    const item = {
+      value: value,
+      expiry: (expireTokenDate.getTime() - Date.now()) / 1000,
+    };
+    localStorage.setItem(key, JSON.stringify(item));
+  }
+  function getWithExpiry(key) {
+    const itemStr = JSON.parse(localStorage.getItem(key));
+    if (!itemStr) {
+      return null;
+    }
+    const item = JSON.parse(itemStr);
+    const now = new Date();
+    if (now.getTime() > item.expiry) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return item.value;
   }
   function setToken(token) {
-    Token.value = token
+    Token.value = token;
   }
   function setUser(data) {
-    if (data) {
-      delete data.token,
-      delete data.tokenExpiresOn
+    if (data.token) {
+      delete data.token, delete data.tokenExpiresOn;
       User.value = data;
-      const cookie = useCookie('user');
-      cookie.value = User.value
+      // const cookie = useCookie('user');
+      // cookie.value = User.value
+      localStorage.setItem("user", JSON.stringify(User.value));
+    }
+    else {
+      localStorage.setItem("user", JSON.stringify(data));
     }
   }
   function clearUser() {
-    localStorage.removeItem("user");
-    const cookie = useCookie('token');
-    cookie.value = null,
-    User.value = null
-    Token.value = null
+    if (process.client) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      // const cookie = useCookie('token');
+      // cookie.value = null,
+      User.value = null;
+      Token.value = null;
+    }
   }
   return {
     User,
@@ -120,6 +153,8 @@ export const useUserStore = defineStore("user", () => {
     setToken,
     Login,
     LogOut,
-    CheckPermissions
+    CheckPermissions,
+    setWithExpiry,
+    getWithExpiry,
   };
 });
