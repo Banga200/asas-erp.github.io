@@ -18,7 +18,8 @@ import Calendar from "~/components/Icons/Calendar.vue";
 import Time from "~/components/Icons/Time.vue";
 import Info from "../Icons/Info.vue";
 import Avatar from "~/components/DesignSystem/Generals/Avatar.vue";
-import DatePicker from "~/components/DesignSystem/Inputs/DatePicker.vue"
+import DatePicker from "~/components/DesignSystem/Inputs/DatePicker.vue";
+import TimePicker from "../DesignSystem/Inputs/TimePicker.vue";
 import User from "~/components/Icons/User.vue";
 import Tab from "~/components/DesignSystem/Generals/Tab.vue";
 import Post from "~/components/DesignSystem/Generals/Post.vue";
@@ -156,21 +157,21 @@ async function AddNewInvoice() {
 function cancel() {
   commonStore.ClearEverythings();
   footerDetails.value = {
-  itemsCount: 0,
-  quantityCount: 0,
-  weight: 0,
-  deliveryDate: "",
-  time: "",
-  today: "",
-}
+    itemsCount: 0,
+    quantityCount: 0,
+    weight: 0,
+    deliveryDate: "",
+    time: "",
+    today: "",
+  };
   footerFields.value = {
-  total: 0,
-  totalBeforeTax: 0,
-  discount: 0,
-  extarDiscount: 0,
-  taxValue: 0,
-  invoiceValue: 0,
-}
+    total: 0,
+    totalBeforeTax: 0,
+    discount: 0,
+    extarDiscount: 0,
+    taxValue: 0,
+    invoiceValue: 0,
+  };
   isNew.value = true;
 }
 // إذا كان فيه حسم لدى العميل يتم إظهار تنبيه
@@ -182,49 +183,51 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
   if (selectedCustomerIndex >= 0) {
     if (NewItems.value[0].itemGUN) {
       const selectedCustomer = { ...Customers.value[selectedCustomerIndex] };
-    Customer.value = selectedCustomer;
-    if (isInoviceTypeChange) {
-      chooseenCustomerDialog.value = true;
-      customerDiscountTitle = `يوجد حسم لدى هذا العميل على الفواتير ${
-        GeneralFields.value.isCash ? "نقد" : "اجل"
-      } هل تريد اعتماد الحسم الذي لدى العميل`;
-    }
-    if (selectedCustomer.salesmanGUN) {
-      let saleman = SalesMen.value.findIndex((saleman) => {
-        return saleman.gun === selectedCustomer.salesmanGUN;
-      });
-      if (saleman >= 0) {
-        salemanIndex.value = saleman;
+      Customer.value = selectedCustomer;
+      if (isInoviceTypeChange) {
+        chooseenCustomerDialog.value = true;
+        customerDiscountTitle = `يوجد حسم لدى هذا العميل على الفواتير ${
+          GeneralFields.value.isCash ? "نقد" : "اجل"
+        } هل تريد اعتماد الحسم الذي لدى العميل`;
       }
-    }
-    if (NewItems.value[0].itemGUN) {
-      // إذاوجد سعر و حسم لدى العميل
-      if (
-        (selectedCustomer.cashInvoiceDiscountPercentage ||
-          selectedCustomer.creditInvoiceDiscountPercentage) &&
-        selectedCustomer.defaultPrice
-      ) {
-        showModel.value = true;
-        // Customer.value = GeneralFields.value.isCash ? selectedCustomer.cashInvoiceDiscountPercentage : selectedCustomer.creditInvoiceDiscountPercentage
-        defaultPrice.value = selectedCustomer.defaultPrice;
-      } else {
+      if (selectedCustomer.salesmanGUN) {
+        let saleman = SalesMen.value.findIndex((saleman) => {
+          return saleman.gun === selectedCustomer.salesmanGUN;
+        });
+        if (saleman >= 0) {
+          salemanIndex.value = saleman;
+        }
+      }
+      if (NewItems.value[0].itemGUN) {
+        // إذاوجد سعر و حسم لدى العميل
         if (
           (selectedCustomer.cashInvoiceDiscountPercentage ||
             selectedCustomer.creditInvoiceDiscountPercentage) &&
-          NewItems.value[0].itemGUN
+          selectedCustomer.defaultPrice
         ) {
-          chooseenCustomerDialog.value = true;
-          customerDiscountTitle = "هل تريد اعتماد الحسم الخاص بالعميل";
-        }
-        // شيك اذا نوع السعر مختلف عن نوع السعر المختار
-        if (selectedCustomer.defaultPrice && NewItems.value[0].itemGUN) {
-          if (selectedCustomer.defaultPrice !== GeneralFields.value.priceType) {
-            priceTypeDialog.value = true;
-            defaultPrice.value = selectedCustomer.defaultPrice;
+          showModel.value = true;
+          // Customer.value = GeneralFields.value.isCash ? selectedCustomer.cashInvoiceDiscountPercentage : selectedCustomer.creditInvoiceDiscountPercentage
+          defaultPrice.value = selectedCustomer.defaultPrice;
+        } else {
+          if (
+            (selectedCustomer.cashInvoiceDiscountPercentage ||
+              selectedCustomer.creditInvoiceDiscountPercentage) &&
+            NewItems.value[0].itemGUN
+          ) {
+            chooseenCustomerDialog.value = true;
+            customerDiscountTitle = "هل تريد اعتماد الحسم الخاص بالعميل";
+          }
+          // شيك اذا نوع السعر مختلف عن نوع السعر المختار
+          if (selectedCustomer.defaultPrice && NewItems.value[0].itemGUN) {
+            if (
+              selectedCustomer.defaultPrice !== GeneralFields.value.priceType
+            ) {
+              priceTypeDialog.value = true;
+              defaultPrice.value = selectedCustomer.defaultPrice;
+            }
           }
         }
       }
-    }
     }
   }
 }
@@ -270,14 +273,13 @@ async function checkInvoiceChanges(isCash) {
       NewItems.value[index].forSale = false;
     }
     if (flag) {
-    notForSale.value = true;
-  } else {
-    notForSale.value = true;
-    element.forSale = true;
-    notForSale.value = false;
+      notForSale.value = true;
+    } else {
+      notForSale.value = true;
+      element.forSale = true;
+      notForSale.value = false;
+    }
   }
-  }
-  
 }
 // اذا صنف ليس للبيع يتم حذفه بعد الضغط على زر "حذف الكل"
 function handleNoneSaleItems() {
@@ -409,8 +411,8 @@ function calculateInvoiceFooter() {
   footerFields.value.total = total;
   footerFields.value.totalBeforeTax = total - discount;
   footerFields.value.taxValue = taxValue;
-  footerFields.value.discount = discount
-  footerFields.value.invoiceValue = net
+  footerFields.value.discount = discount;
+  footerFields.value.invoiceValue = net;
 }
 function handleDiscount(discount) {
   discount = discount ? discount : footerDetails.value.discount;
@@ -463,7 +465,7 @@ function setDiscountToAllItems(discount) {
         element.total,
         element.price
       );
-      element.net = element.total - element.discount + element.taxValue
+      element.net = element.total - element.discount + element.taxValue;
     }
   }
 }
@@ -584,10 +586,29 @@ async function insertAlternative() {
   alternativeDialog.value = false;
 }
 
+function handleDateTime() {
+  try {
+    let convertedDate = '';
+  let convertedTime = '';
+  const originalDateObj = new Date(GeneralFields.value.date);
+  originalDateObj.setMonth(originalDateObj.getMonth() - 1);
+  convertedDate = originalDateObj.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
-
-
-
+  // Convert the original time
+  const [hours, minutes] = GeneralFields.value.time.split(":").map(Number);
+  const convertedTimeObj = new Date();
+  convertedTimeObj.setUTCHours(hours);
+  convertedTimeObj.setUTCMinutes(minutes);
+  convertedTimeObj.setUTCSeconds(0);
+  convertedTimeObj.setUTCMilliseconds(0);
+  convertedTime = convertedTimeObj
+    .toISOString()
+    
+  GeneralFields.value.dateTime = convertedTime
+  } catch (error) {
+    console.log(error)
+  }
+}
 </script>
 <template>
   <div class="row">
@@ -701,11 +722,20 @@ async function insertAlternative() {
                 />
               </div>
               <div>
-
-                <DatePicker :label="'التاريخ'" :leftIcon="Calendar" />
+                <DatePicker
+                  :label="'التاريخ'"
+                  :leftIcon="Calendar"
+                  v-model:input="GeneralFields.date"
+                  @setInput="handleDateTime"
+                />
               </div>
               <div>
-                <TextBox :label="'الوقت'" :leftIcon="Time" />
+                <TimePicker
+                  :label="'الوقت'"
+                  :leftIcon="Time"
+                  v-model:input="GeneralFields.time"
+                  @setInput="handleDateTime"
+                />
               </div>
             </div>
             <!-- Offer Price Details  -->
