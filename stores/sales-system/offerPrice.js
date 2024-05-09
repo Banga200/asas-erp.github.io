@@ -88,6 +88,23 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
         }
         
     }
+    async function DeleteOfferPriceInvoice(id) {
+        try {
+            await useServerFetch(`/offerPrice/${id}`).then(res => {
+                if (res.code === '200') {
+                    successHandle(res.data.viewMessage);
+                }
+                else {
+                    handleCodesMessage(res.code, res.data.viewMessage)
+                }
+            }).catch(error => {
+                console.log(error)
+            }) 
+        } catch (error) {
+            console.log(error)
+        }
+        
+    }
     function RemoveUnnessaceryFields() {
         let Items = []
         generaFields = {...commonStore.GeneralFields}
@@ -139,6 +156,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
         NewOfferPrice,
         SaveOfferPriceInvoice,
         GetOfferPriceInvoices,
-        GetOfferPriceInvoiceById
+        GetOfferPriceInvoiceById,
+        DeleteOfferPriceInvoice
     }
 })

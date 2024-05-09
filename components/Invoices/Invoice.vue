@@ -151,15 +151,31 @@ onMounted(async () => {
   } else if (SalesInvoice) {
   } else if (Booked) {
   }
+  
 });
+onUpdated(() => {
+  // if (ViewInvoice.value?.data) {
+  //   let invoice = ViewInvoice.value?.data.find((item) => {
+  //     return item.no === GeneralFields.value.no;
+  //   });
+  //   if (invoice) {
+      
+  //     footerDetails.value.itemsCount = invoice.itemsCount;
+  //     footerDetails.value.quantityCount = invoice.quantityTotal;
+  //     footerDetails.value.weight = invoice.weightTotal;
 
+  //     footerFields.value.invoiceValue = invoice.amountTotal;
+  //   }
+  // }
+     
+})
 async function AddNewInvoice() {
   await userStore.CheckPermissions(route.meta.moduleId);
   if (Permissions.value?.canAccess) {
     if (Permissions.value?.canAdd) {
       commonStore.ClearEverythings();
       isNew.value = false;
-      branchSelected.value = true;
+      // branchSelected.value = true;
       commonStore.SetDefaultFields();
       await commonStore.GetBranches();
       GeneralFields.value.branchGUN = Branches.value[0].gun;
@@ -168,7 +184,7 @@ async function AddNewInvoice() {
           GeneralFields.value.branchGUN,
           GeneralFields.value.isCash
         );
-        handleDateTime();
+        // handleDateTime();
       } else if (ReturnInvoice) {
       } else if (SalesInvoice) {
       } else if (Booked) {
@@ -198,6 +214,7 @@ function cancel() {
     invoiceValue: 0,
   };
   isNew.value = true;
+  OfferPriceStore.GetOfferPriceInvoices();
 }
 // إذا كان فيه حسم لدى العميل يتم إظهار تنبيه
 const salemanIndex = ref(null);
@@ -393,23 +410,8 @@ async function handleTaxApplied(isTaxApplied, index) {
   }
 }
 watch(NewItems, (value) => {
-  if (value) {
     calculateInvoiceFooter();
-  }
   
-  if (ViewInvoice.value) {
-    let invoice = ViewInvoice.value?.data.find((item) => {
-      return item.no === GeneralFields.value.no;
-    });
-    if (invoice) {
-      
-      footerDetails.value.itemsCount = invoice.itemsCount;
-      footerDetails.value.quantityCount = invoice.quantityTotal;
-      footerDetails.value.weight = invoice.weightTotal;
-
-      footerFields.value.invoiceValue = invoice.amountTotal;
-    }
-  }
 });
 
 function calculateInvoiceFooter() {
@@ -422,9 +424,8 @@ function calculateInvoiceFooter() {
   let taxValue = 0.0;
   for (let index = 0; index < NewItems.value.length; index++) {
     const element = NewItems.value[index];
-    console.log(element);
+    
     if (element) {
-      console.log(element);
       quantityCount += parseInt(element.quantity);
       total += element.total;
       taxValue += element.taxValue;
@@ -432,7 +433,7 @@ function calculateInvoiceFooter() {
       net += element.net;
     }
   }
-
+  console.log(NewItems.value);
   footerDetails.value.itemsCount = isNew.value
     ? NewItems.value.length
     : NewItems.value.length - 1;
