@@ -71,6 +71,7 @@ const salesStore = useSalesStore();
 const { Sales } = storeToRefs(salesStore);
 const commonStore = useCommonStore();
 const {
+  InvoicesTree: ViewInvoice,
   GeneralFields,
   SelectedAlternative,
   ItemId,
@@ -90,6 +91,24 @@ const userStore = useUserStore();
 await userStore.CheckPermissions(route.meta.moduleId);
 const { Permissions } = storeToRefs(userStore);
 const OfferPriceStore = useOfferPriceStore();
+
+const footerDetails = ref({
+  itemsCount: 0,
+  quantityCount: 0,
+  weight: 0,
+  deliveryDate: "",
+  time: "",
+  today: "",
+});
+const footerFields = ref({
+  total: 0,
+  totalBeforeTax: 0,
+  discount: 0,
+  extarDiscount: 0,
+  taxValue: 0,
+  invoiceValue: 0,
+});
+
 let customerDiscountTitle = "";
 // Props
 const { SalesInvoice, ReturnInvoice, OfferPrice, Booked } = defineProps([
@@ -133,12 +152,14 @@ onMounted(async () => {
   } else if (Booked) {
   }
 });
+
 async function AddNewInvoice() {
   await userStore.CheckPermissions(route.meta.moduleId);
   if (Permissions.value?.canAccess) {
     if (Permissions.value?.canAdd) {
+      commonStore.ClearEverythings();
       isNew.value = false;
-      branchSelected.value = true
+      branchSelected.value = true;
       commonStore.SetDefaultFields();
       await commonStore.GetBranches();
       GeneralFields.value.branchGUN = Branches.value[0].gun;
@@ -148,7 +169,6 @@ async function AddNewInvoice() {
           GeneralFields.value.isCash
         );
         handleDateTime();
-        console.log(GeneralFields.value)
       } else if (ReturnInvoice) {
       } else if (SalesInvoice) {
       } else if (Booked) {
@@ -242,7 +262,6 @@ function setCustomerDiscount() {
     Customer.value.cashInvoiceDiscountPercentage
       ? (CustomerDiscount.value = Customer.value.cashInvoiceDiscountPercentage)
       : (CustomerDiscount.value = 0);
-    console.log(Customer.value.cashInvoiceDiscountPercentage);
     handleDiscount(`${CustomerDiscount.value}%`);
   } else {
     Customer.value.creditInvoiceDiscountPercentage
@@ -321,7 +340,7 @@ async function handleBranch() {
       salemanField.value = "";
     }
     // تحقق اذا كان يوجد صنف واحد على الاقل
-    if (NewItems.value[0].itemGUN !== "") {
+    if (NewItems.value[0]?.itemGUN !== "") {
       priceDialog.value = true;
     }
   }
@@ -373,24 +392,24 @@ async function handleTaxApplied(isTaxApplied, index) {
     }
   }
 }
-watch(NewItems.value, () => {
-  calculateInvoiceFooter();
-});
-const footerDetails = ref({
-  itemsCount: 0,
-  quantityCount: 0,
-  weight: 0,
-  deliveryDate: "",
-  time: "",
-  today: "",
-});
-const footerFields = ref({
-  total: 0,
-  totalBeforeTax: 0,
-  discount: 0,
-  extarDiscount: 0,
-  taxValue: 0,
-  invoiceValue: 0,
+watch(NewItems, (value) => {
+  if (value) {
+    calculateInvoiceFooter();
+  }
+  
+  if (ViewInvoice.value) {
+    let invoice = ViewInvoice.value?.data.find((item) => {
+      return item.no === GeneralFields.value.no;
+    });
+    if (invoice) {
+      
+      footerDetails.value.itemsCount = invoice.itemsCount;
+      footerDetails.value.quantityCount = invoice.quantityTotal;
+      footerDetails.value.weight = invoice.weightTotal;
+
+      footerFields.value.invoiceValue = invoice.amountTotal;
+    }
+  }
 });
 
 function calculateInvoiceFooter() {
@@ -401,16 +420,22 @@ function calculateInvoiceFooter() {
   let total = 0.0;
   let discount = 0.0;
   let taxValue = 0.0;
-  for (let index = 0; index < NewItems.value.length - 1; index++) {
+  for (let index = 0; index < NewItems.value.length; index++) {
     const element = NewItems.value[index];
-    quantityCount += parseInt(element.quantity);
-    total += element.total;
-    taxValue += element.taxValue;
-    discount += parseFloat(element.discount);
-    net += element.net;
+    console.log(element);
+    if (element) {
+      console.log(element);
+      quantityCount += parseInt(element.quantity);
+      total += element.total;
+      taxValue += element.taxValue;
+      discount += parseFloat(element.discount);
+      net += element.net;
+    }
   }
 
-  footerDetails.value.itemsCount = NewItems.value.length - 1;
+  footerDetails.value.itemsCount = isNew.value
+    ? NewItems.value.length
+    : NewItems.value.length - 1;
   footerDetails.value.quantityCount = parseInt(quantityCount);
   // left Side
   footerFields.value.total = total;
@@ -480,7 +505,7 @@ function setPriceOnItems() {}
 
 function handlePriceType() {
   if (!isCustomerPriceCheck.value) {
-    if (NewItems.value[0].itemGUN) {
+    if (NewItems.value[0]?.itemGUN) {
       if (Customer.value.defaultPrice !== GeneralFields.value.priceType) {
         priceTypeDialog.value = true;
       } else {
@@ -543,8 +568,6 @@ async function saveInvoice() {
     isNew.value = true;
     commonStore.ClearEverythings();
   }
-  
-  console.log(Permissions.value)
 }
 function checkBeforeSave() {
   // شيك إذا فيه صنف واحد على الاقل
@@ -552,7 +575,6 @@ function checkBeforeSave() {
     validation.value.item = true;
   }
   // إذا كان نوع الفاتورة اجل
-  console.log(GeneralFields.value.isCash);
   if (GeneralFields.value.isCash === false) {
     if (!Customer.value.gun || Customer.value.isSuspend) {
       // وضع تنبيه في حقل العميل ولا يتم الحفظ
@@ -595,25 +617,24 @@ async function insertAlternative() {
 
 function handleDateTime() {
   try {
-    let convertedDate = '';
-  let convertedTime = '';
-  const originalDateObj = new Date(GeneralFields.value.date);
-  originalDateObj.setMonth(originalDateObj.getMonth() - 1);
-  convertedDate = originalDateObj.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    let convertedDate = "";
+    let convertedTime = "";
+    const originalDateObj = new Date(GeneralFields.value.date);
+    originalDateObj.setMonth(originalDateObj.getMonth() - 1);
+    convertedDate = originalDateObj.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
-  // Convert the original time
-  const [hours, minutes] = GeneralFields.value.time.split(":").map(Number);
-  const convertedTimeObj = new Date();
-  convertedTimeObj.setUTCHours(hours);
-  convertedTimeObj.setUTCMinutes(minutes);
-  convertedTimeObj.setUTCSeconds(0);
-  convertedTimeObj.setUTCMilliseconds(0);
-  convertedTime = convertedTimeObj
-    .toISOString()
-    
-  GeneralFields.value.dateTime = convertedTime
+    // Convert the original time
+    const [hours, minutes] = GeneralFields.value.time.split(":").map(Number);
+    const convertedTimeObj = new Date();
+    convertedTimeObj.setUTCHours(hours);
+    convertedTimeObj.setUTCMinutes(minutes);
+    convertedTimeObj.setUTCSeconds(0);
+    convertedTimeObj.setUTCMilliseconds(0);
+    convertedTime = convertedTimeObj.toISOString();
+
+    GeneralFields.value.dateTime = convertedTime;
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 }
 </script>
@@ -720,12 +741,12 @@ function handleDateTime() {
                 <DropDown
                   :white="true"
                   :label="'الفرع'"
-                  :items="branchSelected ? Branches : []"
+                  :items="Branches || []"
                   :displayTitle="'name2'"
                   :returnValue="'gun'"
                   :isPage="false"
                   @setItem="handleBranch"
-                  :selectFirstItem="branchSelected"
+                  :selectFirstItem="true"
                   v-model:valueReturn="GeneralFields.branchGUN"
                 />
               </div>
@@ -755,9 +776,6 @@ function handleDateTime() {
                     :label="'نوع السعر'"
                     :displayTitle="'name'"
                     :returnValue="'id'"
-                    :selectItem="
-                      PriceType ? PriceType[GeneralFields.priceType - 1] : null
-                    "
                     :noFilter="true"
                     :items="PriceType"
                     v-model:valueReturn="GeneralFields.priceType"
@@ -785,6 +803,7 @@ function handleDateTime() {
                     :displayTitle="'name'"
                     :returnValue="'gun'"
                     :clearable="true"
+                    :selectFistItem="true"
                     :selectItem="SalesMen ? SalesMen[salemanIndex] : null"
                     v-model:input="salemanField"
                     v-model:valueReturn="GeneralFields.salesmanGUN"

@@ -48,7 +48,8 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             }).then(res => {
                 if (res.code === '200') {
                     commonStore.InvoicesTree = res.data.viewData;
-                    GetLastOfferPriceInvoice(res.data.viewData.data[0].gun)
+                    commonStore.SetViewGeneralData(res.data.viewData.data[0])
+                    GetOfferPriceInvoiceById(res.data.viewData.data[0].gun)
                 }
                 else {
                     handleCodesMessage(res.code, res.data.viewMessage)
@@ -61,18 +62,20 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
         }
         
     }
-    async function GetLastOfferPriceInvoice(offerPriceID, pageNumber = 1) {
+    async function GetOfferPriceInvoiceById(offerPriceID, pageNumber = 1) {
+        commonStore.NewItems = []
         try {
             await useServerFetch(`/offerPrice/${offerPriceID}/specific-view-data-of-items/${pageNumber}`, {
             }).then(res => {
                 if (res.code === '200') {
+                    
                     for (let index = 0; index < res.data.viewData.data.length; index++) {
                         const element = res.data.viewData.data[index];
                         commonStore.NewItems.push(element);
                         commonStore.NewItems[index].name = element.itemName
 
                     }
-                    console.log(commonStore.NewItems)
+                    
                 }
                 else {
                     handleCodesMessage(res.code, res.data.viewMessage)
@@ -135,6 +138,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
     return {
         NewOfferPrice,
         SaveOfferPriceInvoice,
-        GetOfferPriceInvoices
+        GetOfferPriceInvoices,
+        GetOfferPriceInvoiceById
     }
 })

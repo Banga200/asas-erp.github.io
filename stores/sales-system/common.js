@@ -4,7 +4,7 @@ export const useCommonStore = defineStore("common", () => {
   const { handleCodesMessage } = useHandleCodes();
   const offerPriceStore = useOfferPriceStore();
   // States
-    const InventoryDocsOrder = {
+  const InventoryDocsOrder = {
     FirstTermInventory: 1,
     PurchaseInvoice: 2,
     SalesInvoice: 3,
@@ -21,42 +21,42 @@ export const useCommonStore = defineStore("common", () => {
     HandingInInvoice: 14,
     InventoryDifferences: 15,
     OperationalHandingOutInvoice: 16,
-    OperationalHandingInInvoice: 17
-  }
+    OperationalHandingInInvoice: 17,
+  };
   const InvoicesTree = ref(null);
   const GeneralFields = ref({
     branchGUN: "",
     salesmanGUN: "",
-    no: '',
+    no: "",
     isCash: true,
     dateTime: "",
-    time: '', // يتم حذفها قبل الارسال
-    date: '', // يتم حذفها قبل الارسال
+    time: "", // يتم حذفها قبل الارسال
+    date: "", // يتم حذفها قبل الارسال
     isTaxApplied: true,
     note: "",
     priceType: 1,
     dataVersion: "",
-    totalDiscount: 0 // يتم حذفها قبل الارسال
+    totalDiscount: 0, // يتم حذفها قبل الارسال
   });
-  // بيانات تحت الفاتورة 
+  // بيانات تحت الفاتورة
   const FooterDetails = ref({
     itemsCount: 0,
     quantityCount: 0,
     weight: 0,
-    deliveryDate: '',
-    time: '',
-    today: ''
-  })
-  const AlternativesItems = ref(null); // الاصناف البديلة 
-  const SelectedAlternative = ref(null);// اذا تم اختيار صنف بديل
-  const ItemId = ref(null); 
+    deliveryDate: "",
+    time: "",
+    today: "",
+  });
+  const AlternativesItems = ref(null); // الاصناف البديلة
+  const SelectedAlternative = ref(null); // اذا تم اختيار صنف بديل
+  const ItemId = ref(null);
   const PriceType = ref(null);
   const TaxApplied = ref();
   const Branches = ref(null);
   const Customers = ref(null);
   const SalesMen = ref(null);
   const CustomerDiscount = ref(null);
-  const Items = ref(null);// الاصناف القادمة مع العميل والمندوب
+  const Items = ref(null); // الاصناف القادمة مع العميل والمندوب
   const Units = ref(null);
   const Warehouses = ref(null);
   const ItemDetails = ref([]);
@@ -78,7 +78,7 @@ export const useCommonStore = defineStore("common", () => {
     additionalCode: null,
     poBox: null,
     phone: null,
-    fax: null, 
+    fax: null,
   });
   const Sales = ref([]);
   const Invoices = ref([]);
@@ -128,7 +128,6 @@ export const useCommonStore = defineStore("common", () => {
     } catch (error) {}
   }
   async function GetItemDetails(itemId, index, itemName) {
-    
     try {
       await useServerFetch(
         `item/${itemId}/item-data-for-offer-price-preparation`,
@@ -144,19 +143,32 @@ export const useCommonStore = defineStore("common", () => {
         .then((res) => {
           if (res.code === "200") {
             // إضافة الوحدات والمستودعات الخاصة بالصنف المختار
-            
+
             if (itemName) {
-              alert(itemId)
+              alert(itemId);
               NewItems.value[index].name = itemName;
               NewItems.value[index].itemGUN = itemId;
             }
             ItemDetails.value.splice(index, 1, res.data.viewData);
             NewItems.value[index].taxValue = res.data.viewData.currentTaxValue;
             NewItems.value[index].unitPriceList = [
-              {id: 1, price: res.data.viewData.nonServiceData?.units[0].sellingPrice},
-              {id: 2, price: res.data.viewData.nonServiceData?.units[0].lowestPrice},
-              {id: 3, price: res.data.viewData.nonServiceData?.units[0].wholesalePrice},
-              {id: 4, price: res.data.viewData.nonServiceData?.units[0].costPrice},
+              {
+                id: 1,
+                price: res.data.viewData.nonServiceData?.units[0].sellingPrice,
+              },
+              {
+                id: 2,
+                price: res.data.viewData.nonServiceData?.units[0].lowestPrice,
+              },
+              {
+                id: 3,
+                price:
+                  res.data.viewData.nonServiceData?.units[0].wholesalePrice,
+              },
+              {
+                id: 4,
+                price: res.data.viewData.nonServiceData?.units[0].costPrice,
+              },
             ];
             IncreaseItem(index);
           } else {
@@ -168,26 +180,27 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
-  // جلب ضريبة الصنف 
+  // جلب ضريبة الصنف
   async function GetItemsTaxes(itemIds) {
-    
     try {
-      await useServerFetch(
-        `item/tax`,
-        {
-          params: {
-            ItemId: itemIds,
-            dateTime: '2024-04-17T08:53:05.266Z',
-          },
-        }
-      )
+      await useServerFetch(`item/tax`, {
+        params: {
+          ItemId: itemIds,
+          dateTime: "2024-04-17T08:53:05.266Z",
+        },
+      })
         .then((res) => {
           if (res.code === "200") {
             res.data.viewData.forEach((element, index) => {
-              NewItems.value[index].taxValue = useHandleTax(element.taxValue, NewItems.value[index].total);
-              NewItems.value[index].net = useHandleTax(element.taxValue, NewItems.value[index].total) + NewItems.value[index].total - NewItems.value[index].discount;
+              NewItems.value[index].taxValue = useHandleTax(
+                element.taxValue,
+                NewItems.value[index].total
+              );
+              NewItems.value[index].net =
+                useHandleTax(element.taxValue, NewItems.value[index].total) +
+                NewItems.value[index].total -
+                NewItems.value[index].discount;
             });
-           
           } else {
             handleCodesMessage(res.code, res.data[0].viewMessage);
           }
@@ -197,21 +210,17 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
-  // جلب كميات على حسب المستودع 
-  async function GetItemQuantityByWarehouse(itemId,warehouseId, index) {
+  // جلب كميات على حسب المستودع
+  async function GetItemQuantityByWarehouse(itemId, warehouseId, index) {
     try {
-      await useServerFetch(
-        `item/${itemId}/main-unit-available-quantity`,
-        {
-          params: {
-            warehouseId: warehouseId,
-          },
-        }
-      )
+      await useServerFetch(`item/${itemId}/main-unit-available-quantity`, {
+        params: {
+          warehouseId: warehouseId,
+        },
+      })
         .then((res) => {
           if (res.code === "200") {
             NewItems.value[index].warehouseQuantity = res.data.viewData;
-            
           } else {
             handleCodesMessage(res.code, res.data[0].viewMessage);
           }
@@ -221,26 +230,22 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
-  // جلب العناصر البديلة 
-  async function GetAlternativesItems(itemId, docType,search, pageNumber) {
-    
+  // جلب العناصر البديلة
+  async function GetAlternativesItems(itemId, docType, search, pageNumber) {
     try {
-      await useServerFetch(
-        `item/${itemId}/alternatives-to-view-in-docs`,
-        {
-          params: {
-            branchId: GeneralFields.value.branchGUN,
-            docType: docType,
-            searchText: search? search : '',
-            isCash: GeneralFields.value.isCash,
-            pageNumber: pageNumber ? pageNumber : 1,
-            IsCurrentTaxRequired: GeneralFields.value.isTaxApplied
-          },
-        }
-      )
+      await useServerFetch(`item/${itemId}/alternatives-to-view-in-docs`, {
+        params: {
+          branchId: GeneralFields.value.branchGUN,
+          docType: docType,
+          searchText: search ? search : "",
+          isCash: GeneralFields.value.isCash,
+          pageNumber: pageNumber ? pageNumber : 1,
+          IsCurrentTaxRequired: GeneralFields.value.isTaxApplied,
+        },
+      })
         .then((res) => {
           if (res.code === "200") {
-            ItemId.value = itemId
+            ItemId.value = itemId;
             AlternativesItems.value = res.data.viewData;
           } else {
             handleCodesMessage(res.code, res.data.viewMessage);
@@ -251,34 +256,34 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
-  // إدراج الاصناف البديلة 
-  async function GetInsertAlternativesItems(itemId,alternativeId, docType) {
+  // إدراج الاصناف البديلة
+  async function GetInsertAlternativesItems(itemId, alternativeId, docType) {
     try {
-      await useServerFetch(
-        `item/${itemId}/alternatives-to-insert-in-docs`,
-        {
-          params: {
-            branchId: GeneralFields.value.branchGUN,
-            alternativeId: alternativeId,
-            docType: docType,
-            isCash: GeneralFields.value.isCash,
-            IsCurrentTaxRequired: GeneralFields.value.isTaxApplied
-          },
-        }
-      )
+      await useServerFetch(`item/${itemId}/alternatives-to-insert-in-docs`, {
+        params: {
+          branchId: GeneralFields.value.branchGUN,
+          alternativeId: alternativeId,
+          docType: docType,
+          isCash: GeneralFields.value.isCash,
+          IsCurrentTaxRequired: GeneralFields.value.isTaxApplied,
+        },
+      })
         .then((res) => {
           if (res.code === "200") {
-            let itemIndex = NewItems.value.findIndex(item => {
-              return item.itemGUN === ItemId.value
-            })
+            let itemIndex = NewItems.value.findIndex((item) => {
+              return item.itemGUN === ItemId.value;
+            });
             if (itemIndex >= 0) {
-              console.log(res)
+              console.log(res);
               let data = res.data.viewData;
               // NewItems.value.splice(itemIndex, 1, insertItem(data))
-               
-              GetItemDetails(alternativeId, itemIndex, res.data.viewData.itemName)
+
+              GetItemDetails(
+                alternativeId,
+                itemIndex,
+                res.data.viewData.itemName
+              );
             }
-            
           } else {
             handleCodesMessage(res.code, res.data.viewMessage);
           }
@@ -288,42 +293,36 @@ export const useCommonStore = defineStore("common", () => {
         });
     } catch (error) {}
   }
-  // ادراج الاصناف الملحقة 
+  // ادراج الاصناف الملحقة
   async function GetInsertAccessoriesItems(itemId, docType) {
-    
     try {
-      await useServerFetch(
-        `item/${itemId}/accessories-to-insert-in-docs`,
-        {
-          params: {
-            branchId: GeneralFields.value.branchGUN,
-            docType: docType,
-            isCash: GeneralFields.value.isCash,
-            IsCurrentTaxRequired: GeneralFields.value.isTaxApplied
-          },
-        }
-      )
+      await useServerFetch(`item/${itemId}/accessories-to-insert-in-docs`, {
+        params: {
+          branchId: GeneralFields.value.branchGUN,
+          docType: docType,
+          isCash: GeneralFields.value.isCash,
+          IsCurrentTaxRequired: GeneralFields.value.isTaxApplied,
+        },
+      })
         .then((res) => {
-          
           if (res.code === "200") {
-            let itemIndex = NewItems.value.findIndex(item => {
-              return item.itemGUN === itemId
-            })
+            let itemIndex = NewItems.value.findIndex((item) => {
+              return item.itemGUN === itemId;
+            });
             if (itemIndex >= 0) {
               let data = res.data.viewData;
               for (let index = 0; index < data.length; index++) {
                 const element = data[index];
-                NewItems.value[itemIndex + 1] = insertItem(element)
-                itemIndex++
+                NewItems.value[itemIndex + 1] = insertItem(element);
+                itemIndex++;
                 IncreaseItem();
-                ItemDetails.value.push({})
+                ItemDetails.value.push({});
               }
-              NewItems.value[itemIndex + 1] 
+              NewItems.value[itemIndex + 1];
               // NewItems.value.splice(itemIndex, 1, insertItem(data))
-               
+
               // GetItemDetails(alternativeId, itemIndex, res.data.viewData.itemName)
             }
-            
           } else {
             handleCodesMessage(res.code, res.data.viewMessage);
           }
@@ -334,11 +333,11 @@ export const useCommonStore = defineStore("common", () => {
     } catch (error) {}
   }
   function insertItem(data) {
-    return  {
-      name: data.itemName, 
-      unitName: data.unitName, 
-      warehouseName: data.warehouseName, 
-      forSale: null, 
+    return {
+      name: data.itemName,
+      unitName: data.unitName,
+      warehouseName: data.warehouseName,
+      forSale: null,
       itemGUN: data.itemGUN,
       warehouseGUN: data.warehouseGUN,
       unitGUN: data.unitGUN,
@@ -346,16 +345,16 @@ export const useCommonStore = defineStore("common", () => {
       costPrice: data.currentCostPrice,
       quantity: 1,
       unitPriceList: [
-        {id: 1, price: data.currentSellingPrice},
-        {id: 2, price: data.currentLowestPrice},
-        {id: 3, price: data.currentWholesalePrice},
-        {id: 4, price: data.currentCostPrice},
+        { id: 1, price: data.currentSellingPrice },
+        { id: 2, price: data.currentLowestPrice },
+        { id: 3, price: data.currentWholesalePrice },
+        { id: 4, price: data.currentCostPrice },
       ],
-      total: data.currentSellingPrice * 1, 
-      net: data.currentSellingPrice * 1,  
+      total: data.currentSellingPrice * 1,
+      net: data.currentSellingPrice * 1,
       taxValue: null,
-      discount: data.currentDefaultDiscountPercentage
-    }
+      discount: data.currentDefaultDiscountPercentage,
+    };
   }
   function IncreaseItem(index) {
     let isLastItemEmpty = NewItems.value[NewItems.value.length - 1];
@@ -373,23 +372,23 @@ export const useCommonStore = defineStore("common", () => {
         quantity: 0,
         unitPriceList: [],
         total: 0, // قم بحذفه قبل الحفظ في السيرفر ,
-        net: 0,  // قم بحذفه قبل الحفظ في السيرفر ,
+        net: 0, // قم بحذفه قبل الحفظ في السيرفر ,
         taxValue: null,
         discount: CustomerDiscount.value || 0,
       });
     }
   }
   function RemoveItem(index) {
-    let item = NewItems.value[index].itemGUN // check if the row is selected
+    let item = NewItems.value[index].itemGUN; // check if the row is selected
     if (item) {
       NewItems.value.splice(index, 1);
     }
   }
   function setPriceList(unit, index) {
-    NewItems.value[index].unitPriceList[0].price = unit.sellingPrice
-    NewItems.value[index].unitPriceList[1].price = unit.lowestPrice
-    NewItems.value[index].unitPriceList[2].price = unit.wholesalePrice
-    NewItems.value[index].unitPriceList[3].price = unit.costPrice
+    NewItems.value[index].unitPriceList[0].price = unit.sellingPrice;
+    NewItems.value[index].unitPriceList[1].price = unit.lowestPrice;
+    NewItems.value[index].unitPriceList[2].price = unit.wholesalePrice;
+    NewItems.value[index].unitPriceList[3].price = unit.costPrice;
   }
   function SetDefaultFields() {
     NewItems.value.push({
@@ -405,8 +404,8 @@ export const useCommonStore = defineStore("common", () => {
       costPrice: 1,
       quantity: 0,
       total: 0, // قم بحذفه قبل الحفظ في السيرفر ,
-      net: 0,  // قم بحذفه قبل الحفظ في السيرفر ,
-      taxValue:null,
+      net: 0, // قم بحذفه قبل الحفظ في السيرفر ,
+      taxValue: null,
       discount: CustomerDiscount.value || 0,
     });
     PriceType.value = [
@@ -438,41 +437,94 @@ export const useCommonStore = defineStore("common", () => {
       },
     ];
   }
+  function CheckPriceTypeName(priceType) {
+    if (priceType === 1) {
+      return "سعر البيع";
+    }
+    if (priceType === 2) {
+      return "أدنى سعر بيع";
+    }
+    if (priceType === 3) {
+      return "سعر الجملة";
+    }
+    if (priceType === 4) {
+      return "سعر التكلفة";
+    }
+  }
+  function CheckTaxAppliedName(taxApplied) {
+    if (taxApplied) {
+      return "حسب المجموعة الضريبية";
+    } else {
+      return "بدون";
+    }
+  }
+
+  function SetViewGeneralData(data) {
+    
+    Branches.value = [{ name2: data.branchName }];
+    GeneralFields.value.no = data.no;
+    GeneralFields.isCash = data.isCash;
+    GeneralFields.value.note = data.note;
+    GeneralFields.value.isTaxApplied =
+      data.isTaxApplied;
+    PriceType.value = [
+      {
+        id: data.priceType,
+        name: CheckPriceTypeName(
+          data.priceType
+        ),
+      },
+    ];
+    TaxApplied.value = [
+      {
+        id: data.isTaxApplied,
+        name: CheckTaxAppliedName(
+          data.isTaxApplied
+        ),
+      },
+    ];
+    data.salesmanName
+      ? (SalesMen.value = [
+          { name: data.salesmanName || "" },
+        ])
+      : null;
+  }
+
   function setPriceInItem(price, index) {
     NewItems.value[index].price = price;
   }
   function ClearEverythings() {
     Branches.value = null;
     Customers.value = null;
-    ClearCustomer()
+    ClearCustomer();
     SalesMen.value = null;
     Items.value = null;
     Units.value = null;
-    PriceType.value = null 
-    TaxApplied.value = null
-      GeneralFields.value = {
-        branchGUN: "",
-        salesmanGUN: "",
-        no: 0,
-        isCash: true,
-        dateTime: "2024-04-01T10:16:00.158Z",
-        isTaxApplied: true,
-        note: "",
-        priceType: 0,
-        dataVersion: "",
-        items: [
-          //   ادراج الاصناف القادمة من common store
-        ],
-        customer: {
-          // تخزين بيانات العميل القادمة من common store
-        },
-      };
+    PriceType.value = null;
+    TaxApplied.value = null;
+    GeneralFields.value = {
+      branchGUN: "",
+      salesmanGUN: "",
+      no: 0,
+      isCash: true,
+      dateTime: "2024-04-01T10:16:00.158Z",
+      isTaxApplied: true,
+      note: "",
+      priceType: 0,
+      dataVersion: "",
+      items: [
+        //   ادراج الاصناف القادمة من common store
+      ],
+      customer: {
+        // تخزين بيانات العميل القادمة من common store
+      },
+    };
     NewItems.value = [];
   }
-  function ClearCustomer(accept,value) {
+  function ClearCustomer(accept, value) {
     Customer.value = {
       gun: "",
-      name: '',
+      name: "",
       tin: "",
       anotherIdType: 0,
       anotherIdValue: "",
@@ -489,7 +541,7 @@ export const useCommonStore = defineStore("common", () => {
       phone: "",
       fax: "",
     };
-    Customer.value[accept] = value
+    Customer.value[accept] = value;
   }
   return {
     // States
@@ -529,5 +581,8 @@ export const useCommonStore = defineStore("common", () => {
     RemoveItem,
     ClearEverythings,
     ClearCustomer,
+    CheckPriceTypeName,
+    CheckTaxAppliedName,
+    SetViewGeneralData
   };
 });

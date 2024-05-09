@@ -25,7 +25,6 @@ const isOpen = ref(false);
 watch(
   () => props.items,
   (value) => {
-    console.log()
     if (value) {
       if (value.length > 0) {
         if (props.selectFirstItem) {

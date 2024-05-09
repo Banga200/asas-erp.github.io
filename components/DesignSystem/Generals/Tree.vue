@@ -5,8 +5,9 @@ import Item from "~/components/Icons/Item.vue";
 import Folder from "~/components/Icons/Folder.vue";
 import { onMounted } from "vue";
 import ArrowTree from "~/components/Icons/Arrows/ArrowTree.vue";
+const emit = defineEmits(['setItem'])
 const opened = ref(false);
-const { text, arrowIcon, icon, leftIcon, item, itemIcon, noRepeat, displayTitle,secondaryTitle, returnValue } = defineProps([
+const props = defineProps([
   "text",
   "displayTitle",
   "returnValue",
@@ -14,12 +15,16 @@ const { text, arrowIcon, icon, leftIcon, item, itemIcon, noRepeat, displayTitle,
   "itemIcon",
   "leftIcon",
   "item",
+  "selectedFirst",
   'noRepeat',
   "secondaryTitle"
 ]);
 onMounted(() => {
   let items = document.querySelectorAll(".tree li .item-row");
   items.forEach((item, index) => {
+    if (props.selectedFirst) {
+        items[0].classList.add("selected");
+    }
     item.addEventListener("click", () => {
       if (!item.classList.contains("selected")) {
         clearSelected();
@@ -34,14 +39,15 @@ onMounted(() => {
     })
   }
 });
-function openTree() {
+function openTree(item) {
+  emit('setItem', item[props.returnValue])
   opened.value = !opened.value;
 }
 </script>
 <template>
   <ul class="tree">
     <li>
-      <div class="row item-row" @click.stop="openTree" v-if="item">
+      <div class="row item-row" @click.stop="openTree(props.item)" v-if="props.item">
         <div class="gap-4 row">
           <!-- Arrow  -->
           <!-- <div class="icon" :class="[{ opened: opened }]" v-if="item?.child?.length !== 0">
@@ -57,23 +63,23 @@ function openTree() {
             <component :is="Item" />
           </div>
           <!-- Text  -->
-          <span># {{ item[displayTitle] }} {{item[secondaryTitle] ? item[secondaryTitle].name : ''}}</span>
+          <span># {{ props.item[displayTitle] }} {{props.item[secondaryTitle] ? props.item[secondaryTitle].name : ''}}</span>
         </div>
 
         <!-- Left Icon -->
         <div class="icon">
-          <component :is="leftIcon" />
+          <component :is="props.leftIcon" />
         </div>
       </div>
       <div v-if="opened">
         <TransitionGroup appear name="fade">
           <Tree
-            v-for="(child, i) in item?.child"
+            v-for="(child, i) in props.item?.child"
             :key="i"
             :icon="child.child.length === 0 ? Item : Folder"
             :leftIcon="noRepeat ? undefined : Repeat"
             :item="child"
-          />
+            @click.stop="openTree(child)"/>
         </TransitionGroup>
       </div>
     </li>

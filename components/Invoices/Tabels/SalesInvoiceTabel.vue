@@ -330,6 +330,7 @@ function handleKeyupDelete(event, index) {
     </thead>
     <tbody v-if="NewItems.length > 0">
       <tr v-for="(item, i) in NewItems" :key="i">
+        {{ handlePrice(0, i) }}
         <!-- الرقم  -->
         <td class="text-center align-center gap-4 justify-center">
           {{ i + 1 }} <span class="circle" v-if="item.forSale === false"></span>

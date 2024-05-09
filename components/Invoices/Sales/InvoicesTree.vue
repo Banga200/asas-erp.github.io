@@ -7,6 +7,7 @@ import Filter from "~/components/Icons/Filter.vue";
 import Tree from "~/components/DesignSystem/Generals/Tree.vue";
 const userStore = useUserStore();
 const commonStore = useCommonStore();
+const offerPrice = useOfferPriceStore();
 const {Branches, InvoicesTree} = storeToRefs(commonStore)
 const {Permissions} = storeToRefs(userStore)
 const items = ref([
@@ -15,6 +16,16 @@ const items = ref([
 onMounted(async () => {
   await commonStore.GetBranches();
 })
+function handleTreeSelect(id) {
+  let invoice = InvoicesTree.value?.data.find(item => {
+    return item.gun === id
+  })
+  if (invoice) {
+   commonStore.SetViewGeneralData(invoice);
+   offerPrice.GetOfferPriceInvoiceById(id)
+  }
+  
+}
 </script>
 <template>
   <div>
@@ -32,7 +43,7 @@ onMounted(async () => {
       </div>
       <!-- Tree  -->
       <div class="tree-container" v-if="Permissions?.canView">
-        <Tree v-for="(item, i) in InvoicesTree?.data" :key="i" :displayTitle="'no'" :secondaryTitle="'customer'" :returnValue="'gun'" :item="item" :noRepeat="true"/>
+        <Tree v-for="(item, i) in InvoicesTree?.data" :key="i" :displayTitle="'no'" :secondaryTitle="'customer'" :returnValue="'gun'" :item="item" :noRepeat="true" :selectedFirst="true" @setItem="handleTreeSelect"/>
       </div>
     </div>
   </div>
