@@ -13,7 +13,6 @@ const isOpen = ref(false);
 const selectedItem = ref(null);
 let date = new Date();
 onMounted(() => {
-    console.log(date.toTimeString().slice(0, -3))
   input.value = date.toTimeString().split(' ')[0]
   window.addEventListener("click", () => {
     isOpen.value = false;

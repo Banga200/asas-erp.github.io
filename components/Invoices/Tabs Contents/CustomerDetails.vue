@@ -11,10 +11,17 @@ const customerId = ref('');
 const {customerValidation} = defineProps(['customerValidation'])
 const emit = defineEmits(['customerHasDiscount'])
 function checkNameChange(inputValue) {
-  
-  // commonStore.ClearCustomer()
+  Customer.value.isSuspend  = false;
+  Customer.value.gun  = '';
+}
+function clear() {
+   commonStore.ClearCustomer();
 }
 function hasDiscount(customerID, index) {
+  const selectedCustomer = Customers.value.find(item => {
+    return item.gun === customerID
+  })
+  Customer.value.isSuspend = selectedCustomer.isSuspend
   Customer.value.gun = customerID;
   emit('customerHasDiscount', customerID, index)
 }
@@ -23,11 +30,12 @@ function hasDiscount(customerID, index) {
   <div class="flex-column pr-8 pl-8 gap-6">
     <div class="row flex-column-end gap-6">
       <ComboBox
-        v-model:valueReturn="customerId"
+        v-model:valueReturn="Customer.gun"
         :label="'العميل'"
         :clearable="true"
         :color="(Customer.isSuspend || customerValidation) ? 'danger' : undefined"
-        :leftInnerIconItem="'isSuspend'"
+        :leftInnerIconItemText="'isSuspend'"
+        :leftInnerIconItem="Info"
         :leftInnerIcon="Customer.isSuspend ? Info: ''"
         :leftInnerIconToolTip="'هذا العميل موقف'"
         :leftInnerIconToolTipPosition="'bottom'"
@@ -36,6 +44,7 @@ function hasDiscount(customerID, index) {
         :displayTitle="'name'"
         :returnValue="'gun'"
         v-model:input="Customer.name"
+        @clearSelected="clear"
         @setInput="checkNameChange"
         @setItem="hasDiscount"/>
       <Button
@@ -46,10 +55,10 @@ function hasDiscount(customerID, index) {
     </div>
     <div class="grid-2 gap-6">
       <div>
-        <TextBox :label="'الرقم الضريبي'" v-model:input="Customer.tin" :type="'number'"/>
+        <TextBox :label="'الرقم الضريبي'" v-model:input="Customer.tin" :type="'number'" :readOnly="Customer.gun ? true : false"/>
       </div>
       <div>
-        <TextBox :label="'رقم الجوال '" v-model:input="Customer.mobile" :type="'number'"/>
+        <TextBox :label="'رقم الجوال '" v-model:input="Customer.mobile" :type="'number'" :readOnly="Customer.gun ? true : false"/>
       </div>
     </div>
     <div class="grid-2 gap-6">

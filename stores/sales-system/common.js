@@ -380,7 +380,7 @@ export const useCommonStore = defineStore("common", () => {
     }
   }
   function RemoveItem(index) {
-    let item = NewItems.value[index].itemGUN; // check if the row is selected
+    let item = NewItems.value[index].itemGUN // check if the row is selected
     if (item) {
       NewItems.value.splice(index, 1);
     }
@@ -469,10 +469,10 @@ export const useCommonStore = defineStore("common", () => {
       };
     NewItems.value = [];
   }
-  function ClearCustomer() {
+  function ClearCustomer(accept,value) {
     Customer.value = {
       gun: "",
-      name: "",
+      name: '',
       tin: "",
       anotherIdType: 0,
       anotherIdValue: "",
@@ -489,6 +489,7 @@ export const useCommonStore = defineStore("common", () => {
       phone: "",
       fax: "",
     };
+    Customer.value[accept] = value
   }
   return {
     // States
@@ -524,6 +525,7 @@ export const useCommonStore = defineStore("common", () => {
     setPriceList,
     SetDefaultFields,
     setPriceInItem,
+    IncreaseItem,
     RemoveItem,
     ClearEverythings,
     ClearCustomer,

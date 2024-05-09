@@ -100,22 +100,29 @@ export const useUserStore = defineStore("user", () => {
     }
   }
   function setWithExpiry(key, value, expire) {
-    const expireTokenDate = new Date(expire);
+    
     const item = {
       value: value,
-      expiry: (expireTokenDate.getTime() - Date.now()) / 1000,
+      expiry: expire
     };
     localStorage.setItem(key, JSON.stringify(item));
   }
   function getWithExpiry(key) {
-    const itemStr = JSON.parse(localStorage.getItem(key));
+    
+    const itemStr = localStorage.getItem(key);
     if (!itemStr) {
       return null;
     }
     const item = JSON.parse(itemStr);
+
+    const expireTokenDate = new Date(item.expire)
+    const expiryInMilliseconds = expireTokenDate.getTime();
+
     const now = new Date();
-    if (now.getTime() > item.expiry) {
+    console.log(now.getTime())
+    if (now.getTime() > expiryInMilliseconds) {
       localStorage.removeItem(key);
+      localStorage.removeItem('user');
       return null;
     }
     return item.value;

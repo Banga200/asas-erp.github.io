@@ -42,6 +42,7 @@ import Profit from "~/components/Invoices/Tabs Contents/Profit.vue";
 import PayWays from "~/components/Invoices/Tabs Contents/PayWays.vue";
 
 import { useRoute } from "vue-router";
+import DropDown from "../DesignSystem/Inputs/DropDown.vue";
 const emit = defineEmits(["recalculatePrice"]);
 const route = useRoute();
 const { errorHandle, warningHandle } = useNotify();
@@ -58,6 +59,7 @@ const isCustomerPriceCheck = ref(false);
 const isCustomerDiscountCheck = ref(false);
 const taxAppliedDialog = ref(false);
 const alternativeDialog = ref(false);
+const branchSelected = ref(false);
 const validation = ref({
   customer: false,
   item: false,
@@ -136,6 +138,7 @@ async function AddNewInvoice() {
   if (Permissions.value?.canAccess) {
     if (Permissions.value?.canAdd) {
       isNew.value = false;
+      branchSelected.value = true
       commonStore.SetDefaultFields();
       await commonStore.GetBranches();
       GeneralFields.value.branchGUN = Branches.value[0].gun;
@@ -144,6 +147,8 @@ async function AddNewInvoice() {
           GeneralFields.value.branchGUN,
           GeneralFields.value.isCash
         );
+        handleDateTime();
+        console.log(GeneralFields.value)
       } else if (ReturnInvoice) {
       } else if (SalesInvoice) {
       } else if (Booked) {
@@ -538,6 +543,8 @@ async function saveInvoice() {
     isNew.value = true;
     commonStore.ClearEverythings();
   }
+  
+  console.log(Permissions.value)
 }
 function checkBeforeSave() {
   // شيك إذا فيه صنف واحد على الاقل
@@ -710,15 +717,16 @@ function handleDateTime() {
                 />
               </div>
               <div>
-                <ComboBox
+                <DropDown
+                  :white="true"
                   :label="'الفرع'"
-                  :items="Branches || []"
+                  :items="branchSelected ? Branches : []"
                   :displayTitle="'name2'"
                   :returnValue="'gun'"
                   :isPage="false"
                   @setItem="handleBranch"
+                  :selectFirstItem="branchSelected"
                   v-model:valueReturn="GeneralFields.branchGUN"
-                  :selectFirstItem="true"
                 />
               </div>
               <div>
@@ -742,7 +750,8 @@ function handleDateTime() {
             <div class="offer-price-details" v-if="OfferPrice">
               <div class="grid-3 gap-4">
                 <div>
-                  <ComboBox
+                  <DropDown
+                    :white="true"
                     :label="'نوع السعر'"
                     :displayTitle="'name'"
                     :returnValue="'id'"
@@ -757,7 +766,8 @@ function handleDateTime() {
                   />
                 </div>
                 <div>
-                  <ComboBox
+                  <DropDown
+                    :white="true"
                     :label="'احتساب الضريبة'"
                     :displayTitle="'name'"
                     :returnValue="'id'"
@@ -941,10 +951,10 @@ function handleDateTime() {
           </div>
           <!-- Net, Tax ...  -->
           <div class="col-12 col-md-7 pl-8 pr-8 footer-leftside">
-            <div class="grid-4 gap-8">
-              <div>
+            <div class="grid-3 gap-8">
+              <!--  <div>
                 <TextBox :label="'المدفوع'" :readOnly="true" />
-              </div>
+              </div>-->
               <div>
                 <TextBox
                   :label="'الإجمالي'"
@@ -964,9 +974,9 @@ function handleDateTime() {
               <div>
                 <TextBox :label="'حسم إضافي'" />
               </div>
-              <div>
+              <!-- <div>
                 <TextBox :label="'المتبقي'" :readOnly="true" />
-              </div>
+               </div> -->
               <div>
                 <TextBox
                   :label="'الحسم'"

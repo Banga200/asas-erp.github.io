@@ -15,6 +15,7 @@ const emit = defineEmits([
   "getItemBySearch",
   "setInput",
   "setItem",
+  "clearSelected"
 ]);
 const input = defineModel("input");
 const valueReturn = defineModel("valueReturn");
@@ -33,6 +34,7 @@ const props = defineProps([
   "bigData",
   "clearable",
   "readOnly",
+  "leftInnerIconItemText",
   "leftInnerIconItem",
   "rightIcon",
   "leftIcon",
@@ -52,12 +54,11 @@ const props = defineProps([
   "selectItem",
 ]);
 
-const focusedIndex = ref(-1)
+const focusedIndex = ref(-1);
 const inputElement = ref(null);
 const isOpen = ref(false);
 let observer = null;
 onMounted(() => {
-  input.value = ''
   window.addEventListener(
     "click",
     () => {
@@ -82,14 +83,7 @@ watch(
     }
   }
 );
-watch(input, (newValue) => {
-  setInput(newValue);
 
-  if (newValue === "") {
-    selectedItem.value = "";
-    valueReturn.value = "";
-  }
-});
 watch(
   () => props.selectItem,
   (value) => {
@@ -105,10 +99,15 @@ let filterItem = computed(() => {
   if (selectedItem.value) {
     return props.items;
   } else {
-    return props.items.filter((item) => {
-      return item[props.displayTitle].includes(input.value);
-    });
+    if (input.value) {
+      return props.items.filter((item) => {
+        return item[props.displayTitle].includes(input.value);
+      });
+    } else {
+      return props.items;
+    }
   }
+  
 });
 function observeTrigger() {
   observer = new IntersectionObserver(
@@ -133,17 +132,16 @@ function setItem(text, value) {
     input.value = text;
     inputElement.value.focus();
     emit("setItem", value, props.index);
-  }
-  else {
+  } else {
     inputElement.value.focus();
   }
 }
 
 function setInput(value) {
-  input.value = value;
-  emit("setInput", value);
-  if (value === "") {
-    selectedItem.value = "";
+  emit("setInput", input.value, selectedItem.value);
+  selectedItem.value = "";
+  if (props.items) {
+    isOpen.value = true
   }
   if (props.isPage) {
     emit("getItemBySearch", input.value);
@@ -169,26 +167,28 @@ function setFirstItem(item) {
   emit("setItem", item[props.returnValue], props.index);
 }
 function clearInput() {
-  input.value = "";
-  setInput('')
+  input.value = ''
+  emit('clearSelected')
 }
 function handleKeydown(event) {
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     event.preventDefault();
-    
+
     if (event.key === "ArrowDown") {
-      console.log(document.activeElement)
       focusedIndex.value = (focusedIndex.value + 1) % props.items.length;
-    } else{
+    } else {
       focusedIndex.value =
         (focusedIndex.value - 1 + props.items.length) % props.items.length;
     }
-    
-  }
-  else if (event.key === "Enter") {
-    if (props.items[focusedIndex.value]?.[props.displayTitle] && props.items[focusedIndex.value]?.[props.returnValue]) {
-      setItem(props.items[focusedIndex.value]?.[props.displayTitle],props.items[focusedIndex.value]?.[props.returnValue] )
-      
+  } else if (event.key === "Enter") {
+    if (
+      props.items[focusedIndex.value]?.[props.displayTitle] &&
+      props.items[focusedIndex.value]?.[props.returnValue]
+    ) {
+      setItem(
+        props.items[focusedIndex.value]?.[props.displayTitle],
+        props.items[focusedIndex.value]?.[props.returnValue]
+      );
     }
   }
 }
@@ -216,19 +216,20 @@ function handleLinkKeydown(index) {
       @click.stop="isOpen = !isOpen"
     >
       <input
-      @keydown.exact="handleKeydown"
-      tabindex="0"
+        @keydown.exact="handleKeydown"
+        tabindex="0"
         ref="inputElement"
         type="input"
         :disabled="disabled"
         :placeholder="placeholder"
         @focus.stop="focus"
         v-model="input"
+        @input="setInput"
         @keydown.ctrl="openAdvanceSearch"
         :readonly="readOnly"
         class="combobox"
       />
-      <div v-if="input && clearable" >
+      <div v-if="input && clearable">
         <CloseIcon class="closeIcon" @click="clearInput" />
       </div>
 
@@ -258,26 +259,35 @@ function handleLinkKeydown(index) {
       class="dropMenu"
       :class="{ virtual: props.bigData }"
       v-show="isOpen && !disabled"
-      >
+    >
       <div v-if="items && !bigData">
         <Item
           v-for="item in filterItem"
           :key="item[props.returnValue]"
           :text="item[props.displayTitle]"
           :leftInnerIcon="
-            item[props.leftInnerIconItem] ? leftInnerIcon : undefined
+            item[props.leftInnerIconItemText] ? props.leftInnerIconItem : undefined
           "
           :leftInnerIconToolTip="
-            item[props.leftInnerIconItem] ? leftInnerIconToolTip : undefined
+            item[props.leftInnerIconItemText]
+              ? props.leftInnerIconToolTip
+              : undefined
           "
-          @mousedown.stop="setItem(item[props.displayTitle], item[props.returnValue])" 
+          @mousedown.stop="
+            setItem(item[props.displayTitle], item[props.returnValue])
+          "
           :leftInnerIconToolTipPosition="'bottom-right'"
           :selected="item[props.returnValue] === selectedItem"
           @click.stop="
             setItem(item[props.displayTitle], item[props.returnValue])
           "
           @keydown.prevent="handleLinkKeydown(index)"
-          :class="{focus: filterItem[focusedIndex]?.[props.returnValue] === item[props.returnValue]}"/>
+          :class="{
+            focus:
+              filterItem[focusedIndex]?.[props.returnValue] ===
+              item[props.returnValue],
+          }"
+        />
         <div class="trigger" v-if="isPage">جاري جلب الأصناف...</div>
       </div>
 
@@ -289,13 +299,20 @@ function handleLinkKeydown(index) {
       >
         <template v-slot="{ item }">
           <Item
-          :class="{focus: filterItem[focusedIndex]?.[props.returnValue] === item[props.returnValue]}"
+            :class="{
+              focus:
+                filterItem[focusedIndex]?.[props.returnValue] ===
+                item[props.returnValue],
+            }"
             :key="item[props.returnValue]"
             :text="item[props.displayTitle]"
             :selected="item[props.returnValue] === selectedItem"
             @click.stop="setItem(item[props.displayTitle], item[returnValue])"
             @keydown.prevent="handleLinkKeydown(index)"
-            @mousedown.stop="setItem(item[props.displayTitle], item[props.returnValue])"/>
+            @mousedown.stop="
+              setItem(item[props.displayTitle], item[props.returnValue])
+            "
+          />
         </template>
         <template v-slot:after v-if="isPage">
           <div class="trigger" v-if="items">جاري جلب الأصناف...</div>

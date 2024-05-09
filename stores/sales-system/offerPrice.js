@@ -19,10 +19,9 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
           }
     )
     const Invoices = ref([]);
-    let isCustomerValid = false;
+    let isCustomerValid = true;
     async function SaveOfferPriceInvoice() {
         await RemoveUnnessaceryFields();
-        
         try {
             await useServerFetch("/offerPrice", {
                 method: 'POST',
@@ -49,6 +48,31 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             }).then(res => {
                 if (res.code === '200') {
                     commonStore.InvoicesTree = res.data.viewData;
+                    GetLastOfferPriceInvoice(res.data.viewData.data[0].gun)
+                }
+                else {
+                    handleCodesMessage(res.code, res.data.viewMessage)
+                }
+            }).catch(error => {
+                console.log(error)
+            }) 
+        } catch (error) {
+            console.log(error)
+        }
+        
+    }
+    async function GetLastOfferPriceInvoice(offerPriceID, pageNumber = 1) {
+        try {
+            await useServerFetch(`/offerPrice/${offerPriceID}/specific-view-data-of-items/${pageNumber}`, {
+            }).then(res => {
+                if (res.code === '200') {
+                    for (let index = 0; index < res.data.viewData.data.length; index++) {
+                        const element = res.data.viewData.data[index];
+                        commonStore.NewItems.push(element);
+                        commonStore.NewItems[index].name = element.itemName
+
+                    }
+                    console.log(commonStore.NewItems)
                 }
                 else {
                     handleCodesMessage(res.code, res.data.viewMessage)
@@ -74,7 +98,9 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             delete element.net;
             delete element.warehouseQuantity;
             delete element.unitPriceList;
-
+            if (element.warehouseGUN === '') {element.warehouseGUN = null}
+            if (element.unitGUN === '') {element.unitGUN = null}
+            
             Items.push(element)
         }
         if (!generaFields.salesmanGUN) {
@@ -84,15 +110,21 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             delete commonStore.Customer.gun;
         }
         generaFields.customer = (commonStore.Customer)
-        for (const key in commonStore.Customer) {
-            if (Object.hasOwnProperty.call(commonStore.Customer, key)) {
-                const element = commonStore.Customer[key];
-                if (element) {
-                    isCustomerValid = true;
+        if (!generaFields.customer?.gun ) {
+            for (const key in generaFields.customer) {
+                if (Object.hasOwnProperty.call(generaFields.customer, key)) {
+                    const element = generaFields.customer[key];
+                    if (element) {
+                        isCustomerValid = false;
+                    }
                 }
             }
         }
-        isCustomerValid ? true : generaFields.customer
+    //    شيك إذا العميل كان فاضي وجميع الحقول فاضية 
+    //    اعطي العميل قيمة null 
+        if (isCustomerValid) {
+            generaFields.customer = null
+        }
         delete generaFields.totalDiscount;
         delete generaFields.date;
         delete generaFields.time;

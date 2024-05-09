@@ -43,6 +43,14 @@ let timeout = null;
 const page = ref(1);
 const input = ref("");
 const validItem = ref(false);
+onMounted(() => {
+  if (NewItems.value.length > 0) {
+    for (let index = 0; index < NewItems.value.length; index++) {
+      setNet(index)
+    }
+    
+  }
+})
 watch(
   () => props.recalculate,
   (newValue) => {
@@ -300,6 +308,8 @@ function handleKeyupDelete(event, index) {
     removeItem(index)
   } 
 }
+
+
 </script>
 <template>
   <table>
@@ -497,32 +507,32 @@ function handleKeyupDelete(event, index) {
             @setInput="handlePrice"
             @changeInput="handlePriceChange"
             :index="i"
-            :inputToolTipText="item.unitPriceList[0]?.price"
+            :inputToolTipText="item?.unitPriceList ? item?.unitPriceList[0]?.price :'' "
             :inputToolTipPosition="'bottom'"
             :menu="true"
-            :menuItems="[
+            :menuItems=" item?.unitPriceList ? [
               {
                 id: 1,
                 text: 'سعر البيع',
-                value: item?.unitPriceList ? item.unitPriceList[0]?.price : 0,
+                value: item?.unitPriceList ? item?.unitPriceList[0]?.price : 0,
               },
               {
                 id: 2,
                 text: 'ادنى سعر بيع',
-                value: item?.unitPriceList ? item.unitPriceList[1]?.price : 0,
+                value: item?.unitPriceList ? item?.unitPriceList[1]?.price : 0,
               },
               {
                 id: 3,
                 text: 'سعر الجملة',
-                value: item?.unitPriceList ? item.unitPriceList[2]?.price : 0,
+                value: item?.unitPriceList ? item?.unitPriceList[2]?.price : 0,
               },
 
               {
                 id: 4,
                 text: 'سعر التكلفة',
-                value: item?.unitPriceList ? item.unitPriceList[3]?.price : 0,
+                value: item?.unitPriceList ? item?.unitPriceList[3]?.price : 0,
               },
-            ]"
+            ] : []"
           />
         </td>
         <!-- Total  -->
