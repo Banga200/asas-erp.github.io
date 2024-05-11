@@ -25,6 +25,7 @@ export const useCommonStore = defineStore("common", () => {
   };
   const InvoicesTree = ref(null);
   const GeneralFields = ref({
+    gun: '',
     branchGUN: "",
     salesmanGUN: "",
     no: "",
@@ -460,11 +461,14 @@ export const useCommonStore = defineStore("common", () => {
   }
 
   function SetViewGeneralData(data) {
-    
+    let date = new Date(data.dateTime)
     Branches.value = [{ name2: data.branchName }];
     GeneralFields.value.no = data.no;
+    GeneralFields.value.gun = data.gun;
     GeneralFields.isCash = data.isCash;
     GeneralFields.value.note = data.note;
+    GeneralFields.value.date  = date.toISOString().substring(0 , 10);
+    GeneralFields.value.time = date.toTimeString().split(' ')[0]
     GeneralFields.value.isTaxApplied =
       data.isTaxApplied;
     PriceType.value = [

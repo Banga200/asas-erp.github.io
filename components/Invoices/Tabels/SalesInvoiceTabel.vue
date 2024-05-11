@@ -26,6 +26,7 @@ const emit = defineEmits([
   "recalculateTotalDiscount",
   "clearValidation",
   "showAlternativeItems",
+  "calculate"
 ]);
 const salesStore = useSalesStore();
 const commonStore = useCommonStore();
@@ -212,6 +213,8 @@ function setNet(index) {
     NewItems.value[index].total -
     NewItems.value[index].discount +
     NewItems.value[index].taxValue;
+
+    emit('calculate')
 }
 function getSelectedWarehouseIndex(warehouseID, index) {
   let warhouseIndex = ItemDetails.value[

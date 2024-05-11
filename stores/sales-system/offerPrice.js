@@ -28,7 +28,8 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                 body: JSON.stringify(generaFields)
             }).then(res => {
                 if (res.code === "200") {
-                    successHandle("تم حفظ الفاتورة بنجاح")
+                    successHandle("تم حفظ الفاتورة بنجاح");
+                    GetOfferPriceInvoices();
                 }
                 else {
                     handleCodesMessage(res.code, res.data.viewMessage);
@@ -90,12 +91,23 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
     }
     async function DeleteOfferPriceInvoice(id) {
         try {
-            await useServerFetch(`/offerPrice/${id}`).then(res => {
+            await useServerFetch(`/offerPrice/${id}`, {
+                method: "DELETE"
+            }).then(res => {
                 if (res.code === '200') {
                     successHandle(res.data.viewMessage);
+                    let index = commonStore.InvoicesTree?.data.findIndex(item => {
+                        return item.gun === id
+                    })
+                    if (index >= 0) {
+                        commonStore.InvoicesTree?.data.splice(index, 1);
+                        GetOfferPriceInvoices()
+                        commonStore.ClearEverythings();
+                    }
+
                 }
                 else {
-                    handleCodesMessage(res.code, res.data.viewMessage)
+                    handleCodesMessage(res.code, res.data[0].viewMessage)
                 }
             }).catch(error => {
                 console.log(error)

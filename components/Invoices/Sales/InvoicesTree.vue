@@ -8,7 +8,7 @@ import Tree from "~/components/DesignSystem/Generals/Tree.vue";
 const userStore = useUserStore();
 const commonStore = useCommonStore();
 const offerPrice = useOfferPriceStore();
-const {Branches, InvoicesTree} = storeToRefs(commonStore)
+const {Branches, InvoicesTree, GeneralFields} = storeToRefs(commonStore)
 const {Permissions} = storeToRefs(userStore)
 const items = ref([
   
@@ -21,6 +21,7 @@ function handleTreeSelect(id) {
     return item.gun === id
   })
   if (invoice) {
+  GeneralFields.value.gun = id;
    commonStore.SetViewGeneralData(invoice);
    offerPrice.GetOfferPriceInvoiceById(id)
   }

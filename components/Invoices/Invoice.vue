@@ -60,6 +60,7 @@ const isCustomerDiscountCheck = ref(false);
 const taxAppliedDialog = ref(false);
 const alternativeDialog = ref(false);
 const branchSelected = ref(false);
+const deleteDialog = ref(false);
 const validation = ref({
   customer: false,
   item: false,
@@ -154,22 +155,24 @@ onMounted(async () => {
   
 });
 onUpdated(() => {
-  // if (ViewInvoice.value?.data) {
-  //   let invoice = ViewInvoice.value?.data.find((item) => {
-  //     return item.no === GeneralFields.value.no;
-  //   });
-  //   if (invoice) {
+  if (ViewInvoice.value?.data) {
+    let invoice = ViewInvoice.value?.data.find((item) => {
+      return item.no === GeneralFields.value.no;
+    });
+    if (invoice) {
       
-  //     footerDetails.value.itemsCount = invoice.itemsCount;
-  //     footerDetails.value.quantityCount = invoice.quantityTotal;
-  //     footerDetails.value.weight = invoice.weightTotal;
+      footerDetails.value.itemsCount = invoice.itemsCount;
+      footerDetails.value.quantityCount = invoice.quantityTotal;
+      footerDetails.value.weight = invoice.weightTotal;
 
-  //     footerFields.value.invoiceValue = invoice.amountTotal;
-  //   }
-  // }
+      footerFields.value.invoiceValue = invoice.amountTotal;
+    }
+  }
      
 })
+
 async function AddNewInvoice() {
+  let date = new Date();
   await userStore.CheckPermissions(route.meta.moduleId);
   if (Permissions.value?.canAccess) {
     if (Permissions.value?.canAdd) {
@@ -178,13 +181,16 @@ async function AddNewInvoice() {
       // branchSelected.value = true;
       commonStore.SetDefaultFields();
       await commonStore.GetBranches();
+      GeneralFields.value.date  = date.toISOString().substring(0 , 10);
+      GeneralFields.value.time = date.toTimeString().split(' ')[0];
       GeneralFields.value.branchGUN = Branches.value[0].gun;
+      handleDateTime();
       if (OfferPrice) {
         commonStore.GetBranchDataForOfferPrice(
           GeneralFields.value.branchGUN,
           GeneralFields.value.isCash
         );
-        // handleDateTime();
+        
       } else if (ReturnInvoice) {
       } else if (SalesInvoice) {
       } else if (Booked) {
@@ -409,10 +415,10 @@ async function handleTaxApplied(isTaxApplied, index) {
     }
   }
 }
-watch(NewItems, (value) => {
-    calculateInvoiceFooter();
+// watch(NewItems, (value) => {
+//     calculateInvoiceFooter();
   
-});
+// });
 
 function calculateInvoiceFooter() {
   let quantityCount = 0;
@@ -433,7 +439,6 @@ function calculateInvoiceFooter() {
       net += element.net;
     }
   }
-  console.log(NewItems.value);
   footerDetails.value.itemsCount = isNew.value
     ? NewItems.value.length
     : NewItems.value.length - 1;
@@ -562,6 +567,7 @@ async function saveInvoice() {
         return;
       } else {
         await OfferPriceStore.SaveOfferPriceInvoice();
+        isNew.value = true
       }
     }, 500);
   } else {
@@ -638,15 +644,25 @@ function handleDateTime() {
     console.log(error);
   }
 }
+
+async function deleteInvoice() {
+  deleteDialog.value = false;
+  let invoiceId = GeneralFields.value.gun;
+  await OfferPriceStore.DeleteOfferPriceInvoice(invoiceId);
+  
+}
 </script>
 <template>
   <div class="row">
+  
     <!-- Tree  -->
     <div class="right-side-tree col-12 col-md-2">
+      <div class="disabledAll" v-if="!isNew"></div>
       <InvoicesTree />
     </div>
     <!-- Content  -->
     <div class="content border-right col-12 col-md-10">
+      <div class="disabledAll" v-if="isNew"></div>
       <!-- Buttons  -->
       <section class="top-buttons row">
         <!-- right side  -->
@@ -657,7 +673,7 @@ function handleDateTime() {
             :rightIcon="Add"
             @click.capture="AddNewInvoice()"
             v-if="isNew"
-          />
+            class="high_index"/>
           <Button
             :color="'netural'"
             :text="'إلغاء'"
@@ -665,9 +681,9 @@ function handleDateTime() {
             @click.capture="cancel"
             v-if="!isNew"
           ></Button>
-          <Button :color="'warning'" :onlyIcon="true" :icon="Edit" />
-          <Button :color="'danger'" :onlyIcon="true" :icon="Delete" />
-          <Button :color="'neutral'" :onlyIcon="true" :icon="Refresh" />
+          <Button :color="'warning'" :onlyIcon="true" :icon="Edit" class="high_index"/>
+          <Button :color="'danger'" :onlyIcon="true" :icon="Delete" @click.capture="deleteDialog = true" class="high_index"/>
+          <Button :color="'neutral'" :onlyIcon="true" :icon="Refresh" class="high_index"/>
           <Button
             :color="'neutral'"
             :onlyIcon="true"
@@ -907,7 +923,7 @@ function handleDateTime() {
           @restRecalculate="() => (recalculate = false)"
           @recalculateTotalDiscount="setDiscountToAllItems"
           @clearValidation="() => (validation.item = false)"
-        />
+        @calculate="calculateInvoiceFooter"/>
       </section>
       <!-- Footer Details  -->
       <section class="invoice-footer">
@@ -1087,6 +1103,15 @@ function handleDateTime() {
       :title="'هل تريد تغير  اسعار الاصناف المدرجة بالنوع المختار؟'"
       :headerText="'تنبية'"
       v-if="priceTypeDialog"
+    />
+    <Dialog
+      :confirmText="'حذف'"
+      :confirmColor="'danger'"
+      v-model:show="deleteDialog"
+      @confirm="deleteInvoice"
+      :title="'هل تريد بالفعل الحذف؟'"
+      :headerText="'تأكيد الحذف'"
+      v-if="deleteDialog"
     />
     <!-- If there are items not for sale  -->
     <Snackbar
