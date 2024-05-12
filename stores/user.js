@@ -103,7 +103,7 @@ export const useUserStore = defineStore("user", () => {
     
     const item = {
       value: value,
-      expiry: expire
+      expire: expire
     };
     localStorage.setItem(key, JSON.stringify(item));
   }
@@ -116,10 +116,9 @@ export const useUserStore = defineStore("user", () => {
     const item = JSON.parse(itemStr);
 
     const expireTokenDate = new Date(item.expire)
-    const expiryInMilliseconds = expireTokenDate.getTime();
+    const expiryInMilliseconds = expireTokenDate.getTime() ;
 
     const now = new Date();
-    console.log(now.getTime())
     if (now.getTime() > expiryInMilliseconds) {
       localStorage.removeItem(key);
       localStorage.removeItem('user');

@@ -172,4 +172,8 @@ button {
             background-color: $warning-900
         }
     }
+    &.disabled {
+        cursor: text;
+        
+    }
 }

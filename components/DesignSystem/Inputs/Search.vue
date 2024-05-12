@@ -3,6 +3,7 @@ import ToolTip from "../Generals/ToolTip.vue";
 import Badge from "../Generals/Badge.vue";
 import CloseIcon from "../../Icons/Close.vue";
 import Search from "../../Icons/Inputs/Search.vue";
+const emit = defineEmits(['search']);
 const input = defineModel("input");
 const {
   label,
@@ -42,10 +43,10 @@ const {
 const closeicon = ref(false);
 function clearInput() {
   input.value = "";
-  closeicon.value = false
+  closeicon.value = false;
+  emit('search')
 }
 function setInput(value) {
-    console.log(value)
   if (value) {
     closeicon.value = true;
     input.value = value;
@@ -64,6 +65,12 @@ function setUnFocus() {
     if (!input.value) {
         closeicon.value = false;
     }
+}
+function setSearch() {
+  if (input.value) {
+    emit("search")
+  }
+  
 }
 </script>
 <template>
@@ -86,11 +93,12 @@ function setUnFocus() {
         :readonly="readOnly"
         @input="setInput($event.target.value)"
         @focus="setFocus"
-        @blur="setUnFocus"/>
+        @blur="setUnFocus"
+        @keydown.enter="setSearch"/>
       <div class="icons">
         <component :is="CloseIcon" @click="clearInput" class="close-icon" v-if="closeicon"/>
         <!-- Left Icon  -->
-        <component :is="Search" />
+        <component :is="Search" @click="setSearch" class="search-icon"/>
       </div>
     </div>
   </div>

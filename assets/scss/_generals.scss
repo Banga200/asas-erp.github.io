@@ -122,6 +122,7 @@
         position: absolute;
         left: 50%;
         top: 135%;
+
         transform: translateX(-50%);
         display: block;
         background-color: $neutral-800;
@@ -130,10 +131,10 @@
         font-size: $size-regular-12;
         box-shadow: $boxShadow-lg;
         width: max-content;
-        max-width: 160px;
+        min-width: 30px;
         white-space: pre-wrap;
         height: fit-content;
-        z-index: 10;
+        z-index: 999;
         *{
             font-size: 12px;
         }
@@ -145,6 +146,13 @@
             
             transform: translateX(-50%) rotate(-45deg);
             background-color: inherit;
+        }
+        &.popover {
+            padding: 8px;
+            &::after {
+                width: 10px;
+                height: 10px;
+            }
         }
         &.show {
             padding: $padding-10;
@@ -254,10 +262,7 @@
     }
 
 }
-.popover-container {
-    @extend .tooltip-container;
 
-}
 // Item 
 .item-container {
     display: flex;

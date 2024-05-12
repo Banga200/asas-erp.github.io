@@ -8,7 +8,7 @@ const commonStore = useCommonStore();
 const offerPriceStore = useOfferPriceStore();
 const { Customers, Customer, CustomerDiscount } = storeToRefs(commonStore);
 const customerId = ref('');
-const {customerValidation} = defineProps(['customerValidation'])
+const {customerValidation, isDisplay} = defineProps(['customerValidation', 'isDisplay'])
 const emit = defineEmits(['customerHasDiscount'])
 function checkNameChange(inputValue) {
   Customer.value.isSuspend  = false;
@@ -43,6 +43,7 @@ function hasDiscount(customerID, index) {
         :items="Customers || []"
         :displayTitle="'name'"
         :returnValue="'gun'"
+        :disabled="isDisplay"
         v-model:input="Customer.name"
         @clearSelected="clear"
         @setInput="checkNameChange"
@@ -51,14 +52,15 @@ function hasDiscount(customerID, index) {
         :onlyIcon="true"
         :color="'neutral'"
         :icon="MoreDotsVertical"
+        :disabled="isDisplay"
       />
     </div>
     <div class="grid-2 gap-6">
       <div>
-        <TextBox :label="'الرقم الضريبي'" v-model:input="Customer.tin" :type="'number'" :readOnly="Customer.gun ? true : false"/>
+        <TextBox :label="'الرقم الضريبي'" v-model:input="Customer.tin" :type="'number'" :readOnly="Customer.gun || Customer.no ? true : false"/>
       </div>
       <div>
-        <TextBox :label="'رقم الجوال '" v-model:input="Customer.mobile" :type="'number'" :readOnly="Customer.gun ? true : false"/>
+        <TextBox :label="'رقم الجوال '" v-model:input="Customer.mobile" :type="'number'" :readOnly="Customer.gun || Customer.no? true : false"/>
       </div>
     </div>
     <div class="grid-2 gap-6">

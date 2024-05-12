@@ -168,6 +168,8 @@ function setFirstItem(item) {
 }
 function clearInput() {
   input.value = ''
+  selectedItem.value = '';
+  valueReturn.value = '';
   emit('clearSelected')
 }
 function handleKeydown(event) {
@@ -229,7 +231,7 @@ function handleLinkKeydown(index) {
         :readonly="readOnly"
         class="combobox"
       />
-      <div v-if="input && clearable">
+      <div v-if="input && clearable && !disabled">
         <CloseIcon class="closeIcon" @click="clearInput" />
       </div>
 

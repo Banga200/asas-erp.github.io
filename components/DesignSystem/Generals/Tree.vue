@@ -15,6 +15,7 @@ const props = defineProps([
   "itemIcon",
   "leftIcon",
   "item",
+  "index",
   "selectedFirst",
   'noRepeat',
   "secondaryTitle"
@@ -39,15 +40,15 @@ onMounted(() => {
     })
   }
 });
-function openTree(item) {
-  emit('setItem', item[props.returnValue])
+function openTree(item, index) {
+  emit('setItem', item[props.returnValue], index)
   opened.value = !opened.value;
 }
 </script>
 <template>
   <ul class="tree">
     <li>
-      <div class="row item-row" @click.stop="openTree(props.item)" v-if="props.item">
+      <div class="row item-row" @click.stop="openTree(props.item, props.index)" v-if="props.item">
         <div class="gap-4 row">
           <!-- Arrow  -->
           <!-- <div class="icon" :class="[{ opened: opened }]" v-if="item?.child?.length !== 0">
@@ -67,7 +68,7 @@ function openTree(item) {
         </div>
 
         <!-- Left Icon -->
-        <div class="icon">
+        <div class="icon" v-if="props.leftIcon">
           <component :is="props.leftIcon" />
         </div>
       </div>
@@ -79,7 +80,7 @@ function openTree(item) {
             :icon="child.child.length === 0 ? Item : Folder"
             :leftIcon="noRepeat ? undefined : Repeat"
             :item="child"
-            @click.stop="openTree(child)"/>
+            @click.stop="openTree(child, i)"/>
         </TransitionGroup>
       </div>
     </li>

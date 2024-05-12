@@ -33,7 +33,7 @@ export const useCommonStore = defineStore("common", () => {
     dateTime: "",
     time: "", // يتم حذفها قبل الارسال
     date: "", // يتم حذفها قبل الارسال
-    isTaxApplied: true,
+    isTaxApplied: false,
     note: "",
     priceType: 1,
     dataVersion: "",
@@ -462,11 +462,18 @@ export const useCommonStore = defineStore("common", () => {
 
   function SetViewGeneralData(data) {
     let date = new Date(data.dateTime)
-    Branches.value = [{ name2: data.branchName }];
+    // Branches.value = [{ name2: data.branchName }];
     GeneralFields.value.no = data.no;
     GeneralFields.value.gun = data.gun;
     GeneralFields.isCash = data.isCash;
     GeneralFields.value.note = data.note;
+
+    GeneralFields.value.createdAt = data.createdAt;
+    GeneralFields.value.createdBy = data.createdBy;
+    GeneralFields.value.lastModifiedAt = data.lastModifiedAt;
+    GeneralFields.value.lastModifiedBy = data.lastModifiedBy;
+
+
     GeneralFields.value.date  = date.toISOString().substring(0 , 10);
     GeneralFields.value.time = date.toTimeString().split(' ')[0]
     GeneralFields.value.isTaxApplied =
@@ -492,6 +499,8 @@ export const useCommonStore = defineStore("common", () => {
           { name: data.salesmanName || "" },
         ])
       : null;
+
+      Customer.value = {gun: '', ...data.customer}
   }
 
   function setPriceInItem(price, index) {
@@ -543,6 +552,7 @@ export const useCommonStore = defineStore("common", () => {
       additionalCode: "",
       poBox: "",
       phone: "",
+      isSuspend: false,
       fax: "",
     };
     Customer.value[accept] = value;

@@ -29,6 +29,8 @@ import Model from "../DesignSystem/Generals/Model.vue";
 import Snackbar from "../DesignSystem/Generals/Snackbar.vue";
 import CheckBox from "../DesignSystem/Inputs/CheckBox.vue";
 import AlternativeItems from "./Models/AlternativeItems.vue";
+import Popover from "../DesignSystem/Generals/Popover.vue";
+import UserPopover from "../DesignSystem/Generals/UserPopover.vue";
 // Tabs
 import CostCenter from "~/components/Invoices/Tabs Contents/CostCenter.vue";
 import Saleman from "~/components/Invoices/Tabs Contents/Saleman.vue";
@@ -152,7 +154,6 @@ onMounted(async () => {
   } else if (SalesInvoice) {
   } else if (Booked) {
   }
-  
 });
 onUpdated(() => {
   if (ViewInvoice.value?.data) {
@@ -160,7 +161,6 @@ onUpdated(() => {
       return item.no === GeneralFields.value.no;
     });
     if (invoice) {
-      
       footerDetails.value.itemsCount = invoice.itemsCount;
       footerDetails.value.quantityCount = invoice.quantityTotal;
       footerDetails.value.weight = invoice.weightTotal;
@@ -168,8 +168,7 @@ onUpdated(() => {
       footerFields.value.invoiceValue = invoice.amountTotal;
     }
   }
-     
-})
+});
 
 async function AddNewInvoice() {
   let date = new Date();
@@ -181,8 +180,8 @@ async function AddNewInvoice() {
       // branchSelected.value = true;
       commonStore.SetDefaultFields();
       await commonStore.GetBranches();
-      GeneralFields.value.date  = date.toISOString().substring(0 , 10);
-      GeneralFields.value.time = date.toTimeString().split(' ')[0];
+      GeneralFields.value.date = date.toISOString().substring(0, 10);
+      GeneralFields.value.time = date.toTimeString().split(" ")[0];
       GeneralFields.value.branchGUN = Branches.value[0].gun;
       handleDateTime();
       if (OfferPrice) {
@@ -190,7 +189,6 @@ async function AddNewInvoice() {
           GeneralFields.value.branchGUN,
           GeneralFields.value.isCash
         );
-        
       } else if (ReturnInvoice) {
       } else if (SalesInvoice) {
       } else if (Booked) {
@@ -298,6 +296,9 @@ function setCustomerDiscount() {
 }
 // شيك اذا كان فيه صنف مختار في "نقد" و غير موجود في "اجل" واعطاء علامة حمراء
 async function checkInvoiceChanges(isCash) {
+  if (isCash) {
+    validation.value.customer = false
+  }
   let flag = false;
   if (OfferPrice) {
     await commonStore.GetBranchDataForOfferPrice(
@@ -417,7 +418,7 @@ async function handleTaxApplied(isTaxApplied, index) {
 }
 // watch(NewItems, (value) => {
 //     calculateInvoiceFooter();
-  
+
 // });
 
 function calculateInvoiceFooter() {
@@ -430,7 +431,7 @@ function calculateInvoiceFooter() {
   let taxValue = 0.0;
   for (let index = 0; index < NewItems.value.length; index++) {
     const element = NewItems.value[index];
-    
+
     if (element) {
       quantityCount += parseInt(element.quantity);
       total += element.total;
@@ -566,8 +567,12 @@ async function saveInvoice() {
       ) {
         return;
       } else {
-        await OfferPriceStore.SaveOfferPriceInvoice();
-        isNew.value = true
+        if ( !Customer.value?.isSuspend ) {
+          await OfferPriceStore.SaveOfferPriceInvoice();
+          isNew.value = true;
+        }
+        
+        
       }
     }, 500);
   } else {
@@ -624,6 +629,9 @@ async function insertAlternative() {
 
 function handleDateTime() {
   try {
+    if (GeneralFields.value.isTaxApplied) {
+      handleTaxApplied(GeneralFields.value.isTaxApplied)
+    }
     let convertedDate = "";
     let convertedTime = "";
     const originalDateObj = new Date(GeneralFields.value.date);
@@ -649,16 +657,22 @@ async function deleteInvoice() {
   deleteDialog.value = false;
   let invoiceId = GeneralFields.value.gun;
   await OfferPriceStore.DeleteOfferPriceInvoice(invoiceId);
-  
+}
+function refresh() {
+  if (OfferPrice) {
+    OfferPriceStore.GetOfferPriceInvoices();
+  } else if (ReturnInvoice) {
+  } else if (SalesInvoice) {
+  } else if (Booked) {
+  }
 }
 </script>
 <template>
   <div class="row">
-  
     <!-- Tree  -->
     <div class="right-side-tree col-12 col-md-2">
       <div class="disabledAll" v-if="!isNew"></div>
-      <InvoicesTree />
+      <InvoicesTree :SalesInvoice="SalesInvoice" :OfferPrice="OfferPrice" :Booked="Booked" :ReturnInvoice="ReturnInvoice"/>
     </div>
     <!-- Content  -->
     <div class="content border-right col-12 col-md-10">
@@ -673,7 +687,8 @@ async function deleteInvoice() {
             :rightIcon="Add"
             @click.capture="AddNewInvoice()"
             v-if="isNew"
-            class="high_index"/>
+            class="high_index"
+          />
           <Button
             :color="'netural'"
             :text="'إلغاء'"
@@ -681,13 +696,34 @@ async function deleteInvoice() {
             @click.capture="cancel"
             v-if="!isNew"
           ></Button>
-          <Button :color="'warning'" :onlyIcon="true" :icon="Edit" class="high_index"/>
-          <Button :color="'danger'" :onlyIcon="true" :icon="Delete" @click.capture="deleteDialog = true" class="high_index"/>
-          <Button :color="'neutral'" :onlyIcon="true" :icon="Refresh" class="high_index"/>
+          <Button
+            :color="'warning'"
+            :onlyIcon="true"
+            :icon="Edit"
+            :class="{'high_index': isNew}"
+            :disabled="!isNew"
+          />
+          <Button
+            :color="'danger'"
+            :onlyIcon="true"
+            :icon="Delete"
+            @click.capture="deleteDialog = true"
+            :class="{'high_index': isNew}"
+            :disabled="!isNew"
+          />
+          <Button
+            :color="'neutral'"
+            :onlyIcon="true"
+            :icon="Refresh"
+            class="high_index"
+            @click.capture="refresh"
+            :disabled="!isNew"
+          />
           <Button
             :color="'neutral'"
             :onlyIcon="true"
             :icon="MoreDotsVertical"
+            :disabled="!isNew"
           />
           <Post
             :text="'2233 مرحل /'"
@@ -705,13 +741,23 @@ async function deleteInvoice() {
         <!-- left side  -->
         <div class="d-flex align-center gap-6">
           <!-- Avatars  -->
-          <div class="avatar-group" v-if="!SalesInvoice">
-            <Avatar :icon="User" :borderColor="'primary'" :size="'md'" />
-            <Avatar :icon="User" :borderColor="'warning'" :size="'md'" />
-            <Avatar :text="'+10'" :borderColor="'warning'" :size="'md'" />
+          <div class="avatar-group high_index" v-if="!SalesInvoice">
+            <Popover :isHover="true" :position="'bottom-right'">
+              <Avatar :icon="User" :borderColor="'warning'" :size="'md'" />
+              <template v-slot:content>
+                <UserPopover :username="GeneralFields?.lastModifiedBy" :date="GeneralFields?.lastModifiedAt" :isEdit="true"/>
+              </template>
+            </Popover>
+            <Popover :isHover="true" :position="'bottom-right'">
+              <Avatar :icon="User" :borderColor="'primary'" :size="'md'" />
+              <template v-slot:content>
+                <UserPopover :username="GeneralFields?.createdBy" :date="GeneralFields?.createdAt"/>
+              </template>
+            </Popover>
           </div>
           <Button :color="'neutral'" :text="'باركود'" :rightIcon="Barcode" />
           <Button
+            
             :color="'neutral'"
             :text="'طباعة'"
             :menuLocation="'right'"
@@ -878,7 +924,7 @@ async function deleteInvoice() {
               </div>
             </div>
           </div>
-          <div class="sheet col-12 col-md-5 pr-6 pb-4">
+          <div class="sheet col-12 col-md-5 pr-6 pb-4 high_index">
             <div class="flex-column gap-8">
               <div class="row align-center tabs-container two-tabs">
                 <div class="col-6">
@@ -904,11 +950,13 @@ async function deleteInvoice() {
               </div>
               <!-- Tabs Content -->
               <div>
-                <component
+                <KeepAlive>
+                  <component
                   :is="customerTabs[customerTabSelected]"
                   @customerHasDiscount="checkCustomerHasDiscount"
                   :customerValidation="validation.customer"
-                />
+                :isDisplay="isNew"/>
+                </KeepAlive>
               </div>
             </div>
           </div>
@@ -923,7 +971,8 @@ async function deleteInvoice() {
           @restRecalculate="() => (recalculate = false)"
           @recalculateTotalDiscount="setDiscountToAllItems"
           @clearValidation="() => (validation.item = false)"
-        @calculate="calculateInvoiceFooter"/>
+          @calculate="calculateInvoiceFooter"
+        />
       </section>
       <!-- Footer Details  -->
       <section class="invoice-footer">

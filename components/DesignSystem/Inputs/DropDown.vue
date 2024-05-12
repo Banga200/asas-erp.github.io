@@ -44,9 +44,12 @@ onUnmounted(() => {
 })
 const selectedItem = ref(false)
 function setItem(text, value, index) {
-  valueReturn.value = value
-  selectedItem.value = text,
-  emit("setItem", value, index);
+  if (selectedItem.value !== text) {
+    valueReturn.value = value
+    selectedItem.value = text,
+    emit("setItem", value, index);
+  }
+  
 }
 function setFirstItem(item) {
   selectedItem.value = item[props.displayTitle];
@@ -71,7 +74,10 @@ function setFirstItem(item) {
       </div>
     </div>
     <!-- Menu  -->
-    <div class="dropMenu"  v-if="isOpen">
+    <div class="dropMenu"  v-show="isOpen">
+        <Item @click="setItem('كل الفروع', '')" :text="'كل الفروع'">
+          
+        </Item>
         <Item v-for="(item,i) in props.items"
           :key="item[returnValue]"
           :text="item[displayTitle]"

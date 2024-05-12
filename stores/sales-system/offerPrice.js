@@ -41,20 +41,27 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             console.log(error)
         }
     }
-    async function GetOfferPriceInvoices(search, pageNumber = 1) {
+    async function GetOfferPriceInvoices(search = '', branchId= '', pageNumber = 1) {
         try {
             await useServerFetch(`/offerPrice/specific-view-data-without-details/${pageNumber}`, {
-                branchId: commonStore.GeneralFields.branchGUN,
-                searchText: search ? search : ''
+               params: {
+                branchId: branchId,
+                searchText: search 
+               }
             }).then(res => {
                 if (res.code === '200') {
                     commonStore.InvoicesTree = res.data.viewData;
-                    commonStore.SetViewGeneralData(res.data.viewData.data[0])
-                    GetOfferPriceInvoiceById(res.data.viewData.data[0].gun)
+                    commonStore.SetViewGeneralData(res.data.viewData.data[0]);
+                    GetOfferPriceInvoiceById(res.data.viewData.data[0].gun);
+                }
+                else if (res.code === '204') {
+                    commonStore.InvoicesTree = [];
+                    commonStore.ClearEverythings();
                 }
                 else {
-                    handleCodesMessage(res.code, res.data.viewMessage)
+                    handleCodesMessage(res.code, res.data.message)
                 }
+                commonStore.GetBranches()
             }).catch(error => {
                 console.log(error)
             }) 
@@ -76,7 +83,6 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                         commonStore.NewItems[index].name = element.itemName
 
                     }
-                    
                 }
                 else {
                     handleCodesMessage(res.code, res.data.viewMessage)

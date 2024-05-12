@@ -131,7 +131,7 @@ main {
     background-color: transparent;
 }
 .high_index {
-    z-index: 9999;
+    z-index: 500;
 }
 .active-menu {
     transition: transform .3s ease-in-out;
@@ -169,8 +169,8 @@ table {
 }
 .avatar-group {
     @include align-items-center;
-
-    .avatar:not(:first-child) {
+    z-index: 800;
+    .avatar:not(:first-child), .tooltip-container:not(:first-child){
         margin-right: - $margin-13;
     }
 }
@@ -200,6 +200,9 @@ table {
 .d-flex {
     display: flex;
 }
+.title-white {
+    color: $white;
+}
 .sheet {
     box-shadow: $boxShadow-sm;
     &.footer-details {
@@ -214,6 +217,9 @@ table {
         font-size: $size-regular-12;
         color: $neutral-600;
     }
+}
+p {
+    color: $neutral-300;
 }
 .gap-2{ gap: $gap-2 !important}
 .gap-4{  gap: $gap-4 !important}
@@ -382,6 +388,9 @@ table {
         @include flex-column;
         gap: 40px;
     }
+}
+.search-icon {
+    cursor: pointer;
 }
 .offer-price-details .textarea {
     height: 60px;

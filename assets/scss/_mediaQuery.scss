@@ -358,7 +358,12 @@
 // height 
 
 
-
+@media (min-height: 319px) {
+  .table-container-invoice {
+    min-height: 193px;
+    max-height: 193px;
+  }
+}
 
 
 @media (min-height: 719px) {
@@ -368,7 +373,7 @@
   }
 }
 
-@media (max-height: 767px) {
+@media (min-height: 767px) {
   .table-container-invoice {
     min-height: 241px;
     max-height: 241px;

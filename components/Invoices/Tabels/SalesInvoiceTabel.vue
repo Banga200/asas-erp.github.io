@@ -585,7 +585,6 @@ function handleKeyupDelete(event, index) {
       </tr>
     </tbody>
   </table>
-
   <Dialog
     :confirmColor="'neutral'"
     :confirmText="'تأكيد'"
