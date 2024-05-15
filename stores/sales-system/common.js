@@ -483,6 +483,7 @@ export const useCommonStore = defineStore("common", () => {
     GeneralFields.value.time = date.toTimeString().split(' ')[0]
     GeneralFields.value.isTaxApplied =
     data.isTaxApplied;
+    // إذا كان عرض فقط يتم تحديد الحقول 
     if (!isEdit) {
       PriceType.value = [
         {

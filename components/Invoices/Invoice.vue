@@ -897,7 +897,7 @@ async function editInvoice() {
                     :noFilter="true"
                     :items="TaxApplied"
                     v-model:valueReturn="GeneralFields.isTaxApplied"
-                    :selectFirstItem="true"
+                    :selectFirstItem="isEdit || !isNew ? false: true"
                     @setItem="handleTaxApplied"
                   />
                 </div>
