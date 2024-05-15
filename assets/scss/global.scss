@@ -167,6 +167,9 @@ table {
     }
     
 }
+.wrapper{
+    position: relative
+}
 .avatar-group {
     @include align-items-center;
     z-index: 800;
@@ -218,8 +221,10 @@ table {
         color: $neutral-600;
     }
 }
-p {
-    color: $neutral-300;
+.no_wrap_text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .gap-2{ gap: $gap-2 !important}
 .gap-4{  gap: $gap-4 !important}
@@ -275,6 +280,7 @@ p {
     @include grid-2;
 }
 .table-container-invoice {
+    position: relative;
     overflow-y: auto;
     overflow-x: hidden;
 }

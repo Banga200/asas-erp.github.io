@@ -10,9 +10,9 @@ const props = defineProps(['isEdit', 'icon', "username", "date"])
             <h5 class="title-white">{{props.username}}</h5>
             <p>تاريخ الإنشاء : {{new Date(props.date).toLocaleDateString()}}</p>
         </div>
-        <div v-if="props.isEdit" class="flex-column">
+        <div v-if="props.isEdit" class="flex-column gap-4">
             <h5 class="title-white">{{props.username}}</h5>
-            <p>تاريخ اخر تعديل : {{new Date(props.date).toLocaleDateString()}}3</p>
+            <p>تاريخ اخر تعديل : {{new Date(props.date).toLocaleDateString()}}</p>
         </div>
     </div>
 </template>

@@ -6,9 +6,9 @@ import MoreDotsVertical from "~/components/Icons/MoreDotsVertical.vue";
 import Info from "~/components/Icons/Info.vue";
 const commonStore = useCommonStore();
 const offerPriceStore = useOfferPriceStore();
-const { Customers, Customer, CustomerDiscount } = storeToRefs(commonStore);
+const { Customers, Customer, CustomerDiscount, EditCustomerGun } = storeToRefs(commonStore);
 const customerId = ref('');
-const {customerValidation, isDisplay} = defineProps(['customerValidation', 'isDisplay'])
+const {customerValidation, isDisplay, isEdit} = defineProps(['customerValidation', 'isDisplay', "isEdit"])
 const emit = defineEmits(['customerHasDiscount'])
 function checkNameChange(inputValue) {
   Customer.value.isSuspend  = false;
@@ -29,11 +29,12 @@ function hasDiscount(customerID, index) {
 <template>
   <div class="flex-column pr-8 pl-8 gap-6">
     <div class="row flex-column-end gap-6">
+     
       <ComboBox
         v-model:valueReturn="Customer.gun"
         :label="'العميل'"
         :clearable="true"
-        :color="(Customer.isSuspend || customerValidation) ? 'danger' : undefined"
+        :color="Customer.gun !== EditCustomerGun ? (Customer.isSuspend || customerValidation) ? 'danger' : undefined : undefined"
         :leftInnerIconItemText="'isSuspend'"
         :leftInnerIconItem="Info"
         :leftInnerIcon="Customer.isSuspend ? Info: ''"
@@ -43,6 +44,7 @@ function hasDiscount(customerID, index) {
         :items="Customers || []"
         :displayTitle="'name'"
         :returnValue="'gun'"
+        :selectItem="EditCustomerGun"
         :disabled="isDisplay"
         v-model:input="Customer.name"
         @clearSelected="clear"

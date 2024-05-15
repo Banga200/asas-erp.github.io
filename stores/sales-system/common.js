@@ -23,6 +23,7 @@ export const useCommonStore = defineStore("common", () => {
     OperationalHandingOutInvoice: 16,
     OperationalHandingInInvoice: 17,
   };
+  const EditCustomerGun = ref(null)
   const InvoicesTree = ref(null);
   const GeneralFields = ref({
     gun: '',
@@ -146,11 +147,12 @@ export const useCommonStore = defineStore("common", () => {
             // إضافة الوحدات والمستودعات الخاصة بالصنف المختار
 
             if (itemName) {
-              alert(itemId);
               NewItems.value[index].name = itemName;
               NewItems.value[index].itemGUN = itemId;
             }
             ItemDetails.value.splice(index, 1, res.data.viewData);
+            
+            // ItemDetails.value[index] = ( res.data.viewData);
             NewItems.value[index].taxValue = res.data.viewData.currentTaxValue;
             NewItems.value[index].unitPriceList = [
               {
@@ -460,14 +462,17 @@ export const useCommonStore = defineStore("common", () => {
     }
   }
 
-  function SetViewGeneralData(data) {
+  function SetViewGeneralData(data, isEdit = false) {
     let date = new Date(data.dateTime)
+    SalesMen.value= [
+      {name: data.salesmanName}
+    ]
     // Branches.value = [{ name2: data.branchName }];
     GeneralFields.value.no = data.no;
     GeneralFields.value.gun = data.gun;
     GeneralFields.isCash = data.isCash;
     GeneralFields.value.note = data.note;
-
+    GeneralFields.value.dataVersion = data.dataVersion
     GeneralFields.value.createdAt = data.createdAt;
     GeneralFields.value.createdBy = data.createdBy;
     GeneralFields.value.lastModifiedAt = data.lastModifiedAt;
@@ -477,32 +482,67 @@ export const useCommonStore = defineStore("common", () => {
     GeneralFields.value.date  = date.toISOString().substring(0 , 10);
     GeneralFields.value.time = date.toTimeString().split(' ')[0]
     GeneralFields.value.isTaxApplied =
-      data.isTaxApplied;
-    PriceType.value = [
-      {
-        id: data.priceType,
-        name: CheckPriceTypeName(
-          data.priceType
-        ),
-      },
-    ];
-    TaxApplied.value = [
-      {
-        id: data.isTaxApplied,
-        name: CheckTaxAppliedName(
-          data.isTaxApplied
-        ),
-      },
-    ];
-    data.salesmanName
+    data.isTaxApplied;
+    if (!isEdit) {
+      PriceType.value = [
+        {
+          id: data.priceType,
+          name: CheckPriceTypeName(
+            data.priceType
+          ),
+        },
+      ];
+      TaxApplied.value = [
+        {
+          id: data.isTaxApplied,
+          name: CheckTaxAppliedName(
+            data.isTaxApplied
+          ),
+        },
+      ];
+      data.salesmanName
       ? (SalesMen.value = [
           { name: data.salesmanName || "" },
         ])
       : null;
-
       Customer.value = {gun: '', ...data.customer}
-  }
+    }
+    else {
+      resetSomefields();
+    }
 
+      
+  }
+  function resetSomefields() {
+    PriceType.value = [
+      {
+        id: 1,
+        name: "سعر البيع",
+      },
+      {
+        id: 2,
+        name: "أدنى سعر بيع",
+      },
+      {
+        id: 3,
+        name: "سعر الجملة",
+      },
+      {
+        id: 4,
+        name: "سعر التكلفة",
+      },
+    ];
+    TaxApplied.value = [
+      {
+        id: false,
+        name: "بدون",
+      },
+      {
+        id: true,
+        name: "حسب المجموعة الضريبية",
+      },
+    ];
+  }
   function setPriceInItem(price, index) {
     NewItems.value[index].price = price;
   }
@@ -575,6 +615,7 @@ export const useCommonStore = defineStore("common", () => {
     Units,
     Warehouses,
     ItemDetails,
+    EditCustomerGun,
     // Static Values
     PriceType,
     TaxApplied,

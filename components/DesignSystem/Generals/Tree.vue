@@ -47,9 +47,9 @@ function openTree(item, index) {
 </script>
 <template>
   <ul class="tree">
-    <li>
-      <div class="row item-row" @click.stop="openTree(props.item, props.index)" v-if="props.item">
-        <div class="gap-4 row">
+    <li @click.stop="openTree(props.item, props.index)">
+      <div class="row item-row"  v-if="props.item">
+        <div class="gap-4 d-flex">
           <!-- Arrow  -->
           <!-- <div class="icon" :class="[{ opened: opened }]" v-if="item?.child?.length !== 0">
             <component
@@ -64,7 +64,7 @@ function openTree(item, index) {
             <component :is="Item" />
           </div>
           <!-- Text  -->
-          <span># {{ props.item[displayTitle] }} {{props.item[secondaryTitle] ? props.item[secondaryTitle].name : ''}}</span>
+          <span class="no_wrap_text" >#  {{ props.item[displayTitle] }} {{props.item[secondaryTitle] ? props.item[secondaryTitle].name : ''}}</span>
         </div>
 
         <!-- Left Icon -->

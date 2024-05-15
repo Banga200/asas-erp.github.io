@@ -63,6 +63,7 @@ const taxAppliedDialog = ref(false);
 const alternativeDialog = ref(false);
 const branchSelected = ref(false);
 const deleteDialog = ref(false);
+const isEdit = ref(false);
 const validation = ref({
   customer: false,
   item: false,
@@ -85,6 +86,7 @@ const {
   Customers,
   CustomerDiscount,
   SalesMen,
+  EditCustomerGun,
   Items,
   Branches,
   PriceType,
@@ -94,7 +96,6 @@ const userStore = useUserStore();
 await userStore.CheckPermissions(route.meta.moduleId);
 const { Permissions } = storeToRefs(userStore);
 const OfferPriceStore = useOfferPriceStore();
-
 const footerDetails = ref({
   itemsCount: 0,
   quantityCount: 0,
@@ -156,18 +157,18 @@ onMounted(async () => {
   }
 });
 onUpdated(() => {
-  if (ViewInvoice.value?.data) {
-    let invoice = ViewInvoice.value?.data.find((item) => {
-      return item.no === GeneralFields.value.no;
-    });
-    if (invoice) {
-      footerDetails.value.itemsCount = invoice.itemsCount;
-      footerDetails.value.quantityCount = invoice.quantityTotal;
-      footerDetails.value.weight = invoice.weightTotal;
+  // if (ViewInvoice.value?.data) {
+  //   let invoice = ViewInvoice.value?.data.find((item) => {
+  //     return item.no === GeneralFields.value.no;
+  //   });
+  //   if (invoice) {
+  //     footerDetails.value.itemsCount = invoice.itemsCount;
+  //     footerDetails.value.quantityCount = invoice.quantityTotal;
+  //     footerDetails.value.weight = invoice.weightTotal;
 
-      footerFields.value.invoiceValue = invoice.amountTotal;
-    }
-  }
+  //     footerFields.value.invoiceValue = invoice.amountTotal;
+  //   }
+  // }
 });
 
 async function AddNewInvoice() {
@@ -227,6 +228,10 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
     return customer.gun === customerID;
   });
   if (selectedCustomerIndex >= 0) {
+    if (!Customers.value[selectedCustomerIndex].isSuspend) {
+      validation.value.customer = false
+    }
+    
     if (NewItems.value[0].itemGUN) {
       const selectedCustomer = { ...Customers.value[selectedCustomerIndex] };
       Customer.value = selectedCustomer;
@@ -276,6 +281,7 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
       }
     }
   }
+
 }
 // إذا كان فيه حسم لدى العميل يتم حفظه
 function setCustomerDiscount() {
@@ -440,9 +446,7 @@ function calculateInvoiceFooter() {
       net += element.net;
     }
   }
-  footerDetails.value.itemsCount = isNew.value
-    ? NewItems.value.length
-    : NewItems.value.length - 1;
+  footerDetails.value.itemsCount = isEdit.value || !isNew.value ? NewItems.value.length - 1 :  NewItems.value.length
   footerDetails.value.quantityCount = parseInt(quantityCount);
   // left Side
   footerFields.value.total = total;
@@ -514,7 +518,7 @@ function handlePriceType() {
   if (!isCustomerPriceCheck.value) {
     if (NewItems.value[0]?.itemGUN) {
       if (Customer.value.defaultPrice !== GeneralFields.value.priceType) {
-        priceTypeDialog.value = true;
+        priceTypeDialog.value = false;
       } else {
         priceTypeDialog.value = true;
       }
@@ -567,12 +571,29 @@ async function saveInvoice() {
       ) {
         return;
       } else {
-        if ( !Customer.value?.isSuspend ) {
-          await OfferPriceStore.SaveOfferPriceInvoice();
-          isNew.value = true;
+        if (isEdit.value) {
+          // إذا كان العميل نفس العميل اللي جاء مع الفاتورة عادي يعدل على الفاتورة 
+          if (Customer.value.gun === EditCustomerGun.value) {
+            if (!validation.value.warehouse) {
+              await OfferPriceStore.EditOfferPriceInvoice(GeneralFields.value.gun);
+            } 
+          }
+          else{
+            if ( !Customer.value?.isSuspend ) {
+              await OfferPriceStore.EditOfferPriceInvoice(GeneralFields.value.gun);
+            }
+          }
         }
-        
-        
+        else {
+          if ( !Customer.value?.isSuspend ) {
+          await OfferPriceStore.SaveOfferPriceInvoice();
+          
+        }
+        }
+        if (OfferPriceStore.success) {
+          isNew.value = true;
+          isEdit.value = false
+        }
       }
     }, 500);
   } else {
@@ -588,7 +609,10 @@ function checkBeforeSave() {
   }
   // إذا كان نوع الفاتورة اجل
   if (GeneralFields.value.isCash === false) {
-    if (!Customer.value.gun || Customer.value.isSuspend) {
+    if (Customer.value.gun === EditCustomerGun.value) {
+      validation.value.customer = false;
+    }
+    else if (!Customer.value.gun || Customer.value.isSuspend) {
       // وضع تنبيه في حقل العميل ولا يتم الحفظ
       validation.value.customer = true;
     }
@@ -653,6 +677,10 @@ function handleDateTime() {
   }
 }
 
+function handleSaleman(saleman) {
+  console.log(saleman)
+}
+
 async function deleteInvoice() {
   deleteDialog.value = false;
   let invoiceId = GeneralFields.value.gun;
@@ -666,17 +694,31 @@ function refresh() {
   } else if (Booked) {
   }
 }
+async function editInvoice() {
+  isEdit.value = !isEdit.value;
+  let invoiceId = GeneralFields.value.gun;
+  let date = new Date();
+  if (isEdit.value) {
+    await OfferPriceStore.GetOfferPriceInvoiceEditById(invoiceId);
+    GeneralFields.value.date = date.toISOString().substring(0, 10);
+    GeneralFields.value.time = date.toTimeString().split(" ")[0];
+    handleDateTime()
+  }
+  else {
+    await OfferPriceStore.GetOfferPriceInvoiceEditById(invoiceId);
+  }
+}
 </script>
 <template>
   <div class="row">
     <!-- Tree  -->
     <div class="right-side-tree col-12 col-md-2">
-      <div class="disabledAll" v-if="!isNew"></div>
+      <div class="disabledAll" v-if="!isNew || isEdit"></div>
       <InvoicesTree :SalesInvoice="SalesInvoice" :OfferPrice="OfferPrice" :Booked="Booked" :ReturnInvoice="ReturnInvoice"/>
     </div>
     <!-- Content  -->
     <div class="content border-right col-12 col-md-10">
-      <div class="disabledAll" v-if="isNew"></div>
+      <div class="disabledAll" v-if="isEdit ? false : isNew"></div>
       <!-- Buttons  -->
       <section class="top-buttons row">
         <!-- right side  -->
@@ -688,7 +730,7 @@ function refresh() {
             @click.capture="AddNewInvoice()"
             v-if="isNew"
             class="high_index"
-          />
+            :disabled="isEdit"/>
           <Button
             :color="'netural'"
             :text="'إلغاء'"
@@ -697,19 +739,19 @@ function refresh() {
             v-if="!isNew"
           ></Button>
           <Button
-            :color="'warning'"
+            :color="isEdit ? 'netural' : 'warning'"
             :onlyIcon="true"
-            :icon="Edit"
+            :icon="isEdit ? Close :Edit"
             :class="{'high_index': isNew}"
             :disabled="!isNew"
-          />
+            @click.capture="editInvoice"/>
           <Button
             :color="'danger'"
             :onlyIcon="true"
             :icon="Delete"
             @click.capture="deleteDialog = true"
             :class="{'high_index': isNew}"
-            :disabled="!isNew"
+            :disabled="!isNew || isEdit"
           />
           <Button
             :color="'neutral'"
@@ -717,7 +759,7 @@ function refresh() {
             :icon="Refresh"
             class="high_index"
             @click.capture="refresh"
-            :disabled="!isNew"
+            :disabled="!isNew || isEdit"
           />
           <Button
             :color="'neutral'"
@@ -866,8 +908,7 @@ function refresh() {
                     :displayTitle="'name'"
                     :returnValue="'gun'"
                     :clearable="true"
-                    :selectFistItem="true"
-                    :selectItem="SalesMen ? SalesMen[salemanIndex] : null"
+                    :selectFirstItem="isEdit || !isNew ? false: true"
                     v-model:input="salemanField"
                     v-model:valueReturn="GeneralFields.salesmanGUN"
                   />
@@ -955,7 +996,7 @@ function refresh() {
                   :is="customerTabs[customerTabSelected]"
                   @customerHasDiscount="checkCustomerHasDiscount"
                   :customerValidation="validation.customer"
-                :isDisplay="isNew"/>
+                :isDisplay="isEdit ? false : isNew" :isEdit="isEdit"/>
                 </KeepAlive>
               </div>
             </div>
@@ -963,17 +1004,18 @@ function refresh() {
         </div>
       </section>
       <!-- Tabel  -->
-      <section class="table-container-invoice">
-        <SalesInvoiceTabel
-          :itemValidation="validation.item"
-          :recalculate="recalculate"
-          @showAlternativeItems="() => (alternativeDialog = true)"
-          @restRecalculate="() => (recalculate = false)"
-          @recalculateTotalDiscount="setDiscountToAllItems"
-          @clearValidation="() => (validation.item = false)"
-          @calculate="calculateInvoiceFooter"
-        />
-      </section>
+        <section class="table-container-invoice high-index" >
+            <SalesInvoiceTabel
+            :isEdit="isEdit"
+            :itemValidation="validation.item"
+            :recalculate="recalculate"
+            @showAlternativeItems="() => (alternativeDialog = true)"
+            @restRecalculate="() => (recalculate = false)"
+            @recalculateTotalDiscount="setDiscountToAllItems"
+            @clearValidation="() => (validation.item = false)"
+            @calculate="calculateInvoiceFooter"
+          />
+        </section>
       <!-- Footer Details  -->
       <section class="invoice-footer">
         <div class="row">

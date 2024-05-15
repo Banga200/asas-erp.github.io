@@ -19,7 +19,7 @@ import Popover from "~/components/DesignSystem/Generals/Popover.vue";
 import { useRoute } from "vue-router";
 const route = useRoute();
 const dialog = ref(false);
-const props = defineProps(["recalculate", "itemValidation"]);
+const props = defineProps(["recalculate", "itemValidation", "isEdit"]);
 const emit = defineEmits([
   "setInvoiceFooter",
   "restRecalculate",
@@ -86,17 +86,20 @@ watch(input, (newValue, oldValue) => {
 async function getItemDetails(itemID, index) {
   await commonStore.GetItemDetails(itemID, index);
   NewItems.value[index].quantity = 1;
+  
 }
 function removeItem(index) {
   commonStore.RemoveItem(index);
 }
+const isDetailsOnly = ref(false);
 async function handleUnit(unitID, index) {
   let unitIndex = ItemDetails.value[index]?.nonServiceData?.units.findIndex(
     (unit) => {
       return unit.gun === unitID;
     }
   );
-  if (unitIndex >= 0) {
+   if (!isDetailsOnly.value) {
+    if (unitIndex >= 0) {
     emit("clearValidation");
     // let item = Items.value.find((item) => {
     //   return item.gun === NewItems.value[index].itemGUN;
@@ -122,6 +125,8 @@ async function handleUnit(unitID, index) {
     setTotal(index);
     emit("recalculateTotalDiscount", GeneralFields.value.totalDiscount);
   }
+   }
+   isDetailsOnly.value = false
 }
 async function handleWarehouse(warehouseID, index) {
   await commonStore.GetItemQuantityByWarehouse(
@@ -147,6 +152,7 @@ async function handleQuantity(quantity, index) {
 }
 function handlePrice(price, index) {
   setTotal(index);
+ 
 }
 function handleDiscount(discount, index) {
   if (typeof discount === "string" && discount) {
@@ -199,10 +205,13 @@ function setTotal(index) {
   }
 }
 function handleTax(index) {
-  NewItems.value[index].taxValue = useHandleTax(
+  if (NewItems.value[index]?.gun) {
+    NewItems.value[index].taxValue = useHandleTax(
     ItemDetails.value[index]?.currentTaxValue,
     NewItems.value[index].total
   );
+  }
+  
   NewItems.value[index].net =
     NewItems.value[index].total + NewItems.value[index].taxValue;
 
@@ -311,7 +320,14 @@ function handleKeyupDelete(event, index) {
     removeItem(index)
   } 
 }
-
+function getUnitsAndWarehouse(index) {
+  if ((props.isEdit && !ItemDetails.value[index]?.type) && NewItems.value[index].itemGUN) {
+    if (NewItems.value[index].type !== 2) {
+      isDetailsOnly.value = true
+      getItemDetails(NewItems.value[index].itemGUN, index);
+    }
+  }
+}
 
 </script>
 <template>
@@ -332,7 +348,8 @@ function handleKeyupDelete(event, index) {
       </tr>
     </thead>
     <tbody v-if="NewItems.length > 0">
-      <tr v-for="(item, i) in NewItems" :key="i">
+      <!-- click event on the ROW only for Edit Inovice  -->
+      <tr v-for="(item, i) in NewItems" :key="i" @click.capture="getUnitsAndWarehouse(i)">
         {{ handlePrice(0, i) }}
         <!-- الرقم  -->
         <td class="text-center align-center gap-4 justify-center">
@@ -413,8 +430,8 @@ function handleKeyupDelete(event, index) {
           </Popover>
           <ComboBox
             @keyup.delete="handleKeyupDelete($event,i)"
-            @keydown.f5.prevent="handleKeyPressF5(i)"
-            @keydown.f6.prevent="handleKeyPressF6(i)"
+            @keydown.f5.stop.prevent="handleKeyPressF5(i)"
+            @keydown.f6.stop.prevent="handleKeyPressF6(i)"
             :size="'sm'"
             :color="props.itemValidation ? 'danger' : undefined"
             :class="{ firstItem: i === 0 }"
@@ -462,6 +479,8 @@ function handleKeyupDelete(event, index) {
             :returnValue="'gun'"
             :placeholder="'المستودع'"
             :disabled="ItemDetails[i]?.type === 2"
+            :leftInnerIconItemText="'isSuspend'"
+            :leftInnerIconItem="Info"
             :leftInnerIcon="
               ItemDetails[i]?.nonServiceData?.warehouses[
                 getSelectedWarehouseIndex(item.warehouseGUN, i)

@@ -22,12 +22,12 @@ const { text, rightIcon, color, leftIcon, leftInnerIcon, multi, underline, value
   ]);
 </script>
 <template>
-  <div class="item-container" :class="[color,{ underline: !underline  }, { 'disabled': disabled }, {'selected': selected}]">
+  <ul class="item-container" :class="[color,{ underline: !underline  }, { 'disabled': disabled }, {'selected': selected}]">
     <div class="icon" v-if="rightIcon">
         <component :is="rightIcon" />
     </div>
     <!-- Text  -->
-    <span class="text">{{ text }} </span>
+    <li class="text">{{ text }} </li>
 
     <div class="value" v-if="value">{{ value }}</div>
     <!-- Icons  -->
@@ -46,5 +46,5 @@ const { text, rightIcon, color, leftIcon, leftInnerIcon, multi, underline, value
         <CheckBox :color="'primary'" :disabled="disabled" />
       </div>
     </div>
-  </div>
+  </ul>
 </template>

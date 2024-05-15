@@ -34,7 +34,7 @@ function handleTreeSelect(id, index) {
    InvoicesTree.value.currentPage = index + 1
   }
   if (OfferPrice) {
-    offerPriceStore.GetOfferPriceInvoiceById(id);
+    offerPriceStore.GetOfferPriceInvoiceItemsById(id);
   } else if (ReturnInvoice) {
   } else if (SalesInvoice) {
   } else if (Booked) {
@@ -66,7 +66,7 @@ function handleBranch(branchId) {
       <PagenationItems @setSelectedItem="handleTreeSelect"/>
       <!-- Select DropDown  -->
       <div class="row align-center  gap-10">
-        <DropDown :text="'كل الفروع'" :items="Branches" :displayTitle="'name2'" :returnValue="'gun'" class="flex-grow" @setItem="handleBranch"/>
+        <DropDown :defualtValue="'كل الفروع'" :items="Branches" :displayTitle="'name2'" :returnValue="'gun'" class="flex-grow" @setItem="handleBranch"/>
       
         <Button :onlyIcon="true" :icon="Filter" />
       

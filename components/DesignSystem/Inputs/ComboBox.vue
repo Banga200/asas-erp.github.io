@@ -9,6 +9,7 @@ import { useGeneralStore } from "~/stores/general";
 import { DynamicScroller } from "vue-virtual-scroller";
 const generalStore = useGeneralStore();
 const { isCtrlPressed } = storeToRefs(generalStore);
+const ulMenu = ref(null);
 const emit = defineEmits([
   "openAdvanceSearchModel",
   "getMoreItems",
@@ -88,7 +89,7 @@ watch(
   () => props.selectItem,
   (value) => {
     if (value) {
-      setFirstItem(value);
+      setSelectItem(value);
     }
   }
 );
@@ -100,9 +101,12 @@ let filterItem = computed(() => {
     return props.items;
   } else {
     if (input.value) {
-      return props.items.filter((item) => {
-        return item[props.displayTitle].includes(input.value);
-      });
+      if (isOpen.value) {
+        return props.items.filter((item) => {
+        return item[props.displayTitle]?.includes(input.value);
+        });
+      }
+      return props.items;
     } else {
       return props.items;
     }
@@ -150,6 +154,7 @@ function setInput(value) {
 function unfocus() {
   setTimeout(() => {
     isOpen.value = false;
+    
   }, 100);
 }
 function focus() {
@@ -178,22 +183,38 @@ function handleKeydown(event) {
 
     if (event.key === "ArrowDown") {
       focusedIndex.value = (focusedIndex.value + 1) % props.items.length;
+      // stickScroll(focusedIndex.value)
     } else {
       focusedIndex.value =
         (focusedIndex.value - 1 + props.items.length) % props.items.length;
+        // stickScroll(focusedIndex.value)
+       
     }
   } else if (event.key === "Enter") {
     if (
-      props.items[focusedIndex.value]?.[props.displayTitle] &&
+      props.items[focusedIndex.value]?.[props.displayTitle] &&  
       props.items[focusedIndex.value]?.[props.returnValue]
     ) {
       setItem(
         props.items[focusedIndex.value]?.[props.displayTitle],
         props.items[focusedIndex.value]?.[props.returnValue]
       );
+      isOpen.value = false
     }
   }
 }
+function setSelectItem(value) {
+  selectedItem.value = value
+}
+// function stickScroll(index) {
+//   const itemElement = ulMenu.value.querySelectorAll(".item-container")[index];
+//   const itemTop = itemElement.offsetTop;
+//   const itemHeight = itemElement.offsetHeight;
+//   const menuHeight = ulMenu.value.clientHeight;
+//   itemElement.focus();
+//   const scrollTop = Math.max(0, itemTop - (menuHeight - itemHeight) / 2);
+//   ulMenu.value.scrollTop = scrollTop
+// }
 function handleLinkKeydown(index) {
   focusedIndex.value = index;
 }
@@ -261,9 +282,12 @@ function handleLinkKeydown(index) {
       class="dropMenu"
       :class="{ virtual: props.bigData }"
       v-show="isOpen && !disabled"
-    >
+      ref="ulMenu"
+      @keydown="handleKeydown">
       <div v-if="items && !bigData">
         <Item
+        tabindex="0"
+        
           v-for="item in filterItem"
           :key="item[props.returnValue]"
           :text="item[props.displayTitle]"
@@ -294,6 +318,7 @@ function handleLinkKeydown(index) {
       </div>
 
       <DynamicScroller
+        ref="ulMenu"
         v-if="items && bigData"
         :items="filterItem"
         :keyField="returnValue"
@@ -301,6 +326,8 @@ function handleLinkKeydown(index) {
       >
         <template v-slot="{ item }">
           <Item
+          tabindex="0"
+          
             :class="{
               focus:
                 filterItem[focusedIndex]?.[props.returnValue] ===

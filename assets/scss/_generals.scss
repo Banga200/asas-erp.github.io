@@ -259,6 +259,9 @@
                 transform: rotate(-45deg);
             }
         }
+        p {
+            color: $neutral-300;
+        }
     }
 
 }
@@ -273,6 +276,7 @@
     gap: $gap-8;
     flex-shrink: 0;
     font-size: $size-regular-14;
+    list-style: none;
     cursor: pointer;
 
     &.selected {

@@ -8,9 +8,11 @@ const emit = defineEmits(['setSelectedItem'])
 const commonStore = useCommonStore();
 const {InvoicesTree} = storeToRefs(commonStore);
 let items = ref([])
-onMounted(() => {
-   items.value = document.querySelectorAll(".tree li .item-row");
+
+onUpdated(() => {
+    items.value = document.querySelectorAll(".tree li .item-row");
 })
+
 function next() {
     if ((InvoicesTree.value?.currentPage !== InvoicesTree.value?.totalCount) && (InvoicesTree.value?.currentPage < InvoicesTree.value?.totalCount)) {
         InvoicesTree.value.currentPage += 1
@@ -32,6 +34,7 @@ function prev() {
     if ((InvoicesTree.value?.currentPage   !== 1)) {
         InvoicesTree.value.currentPage -= 1
         clearSelected();
+        console.log(InvoicesTree.value.currentPage -1)
         activeItem(InvoicesTree.value.currentPage -1)
         emit("setSelectedItem", InvoicesTree.value.data[InvoicesTree.value.currentPage -1].gun, InvoicesTree.value.currentPage -1)
     }
@@ -45,6 +48,7 @@ function doublePrev() {
     }
 }
 function activeItem(index)  {
+    console.log(items.value)
     items.value[index].classList.add("selected")
 }
 function clearSelected() {

@@ -18,6 +18,7 @@ const props = defineProps([
   "displayTitle",
   "returnValue",
   "selectFirstItem",
+  "defualtValue",
   'DropArrowIcon'
 ]);
 const valueReturn = defineModel('valueReturn');
@@ -62,7 +63,7 @@ function setFirstItem(item) {
     <label v-if="label">{{ label }}</label>
     <div class="dropDown" :class="[color, {'white': white}, size, {'focus': isOpen}]" @click.stop="isOpen = !isOpen">
       <!-- Text  -->
-      <span class="text">{{ selectedItem ? selectedItem : text }}</span>
+      <span class="text">{{ selectedItem ? selectedItem : defualtValue }}</span>
 
       <div class="icons">
         <div class="icon">
@@ -75,7 +76,7 @@ function setFirstItem(item) {
     </div>
     <!-- Menu  -->
     <div class="dropMenu"  v-show="isOpen">
-        <Item @click="setItem('كل الفروع', '')" :text="'كل الفروع'">
+        <Item @click="setItem(props.defualtValue, '')" :text="props.defualtValue" v-if="props.defualtValue">
           
         </Item>
         <Item v-for="(item,i) in props.items"
