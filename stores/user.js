@@ -119,7 +119,8 @@ export const useUserStore = defineStore("user", () => {
     const expiryInMilliseconds = expireTokenDate.getTime() ;
     
     const now = new Date();
-    if (now.toLocaleString() > expiryInMilliseconds) {
+    console.log(now.toUTCString() , item.expire)
+    if (now.getTime() > expiryInMilliseconds) {
       localStorage.removeItem(key);
       localStorage.removeItem('user');
       return null;

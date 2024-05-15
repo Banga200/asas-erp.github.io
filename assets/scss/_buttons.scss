@@ -48,6 +48,14 @@ button {
             height: 14px;
         }
     }
+    &.xx-small {
+        width: 20px;
+        height: 20px;
+        svg {
+            width: 12px;
+            height: 12px;
+        }
+    }
     &.outline {
         background-color: $white;
         border: $border-1 $neutral-200;
@@ -142,6 +150,15 @@ button {
     
         &:hover {
             background-color: $neutral-200;
+            color: $neutral-900;
+        }
+    }
+    &.neutral-200 {
+        background-color: $neutral-200;
+        color: $neutral-800;
+    
+        &:hover {
+            background-color: $neutral-300;
             color: $neutral-900;
         }
     }

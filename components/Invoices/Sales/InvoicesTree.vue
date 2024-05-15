@@ -5,6 +5,7 @@ import DropDown from "~/components/DesignSystem/Inputs/DropDown.vue";
 import Button from "~/components/DesignSystem/Buttons/Button.vue";
 import Filter from "~/components/Icons/Filter.vue";
 import Tree from "~/components/DesignSystem/Generals/Tree.vue";
+import MoreDotsVertical from "~/components/Icons/MoreDotsVertical.vue";
 const { SalesInvoice, ReturnInvoice, OfferPrice, Booked } = defineProps([
   "SalesInvoice",
   "ReturnInvoice",
@@ -73,7 +74,7 @@ function handleBranch(branchId) {
       </div>
       <!-- Tree  -->
       <div class="tree-container" v-if="Permissions?.canView">
-        <Tree v-for="(item, i) in InvoicesTree?.data" :key="i" :index="i" :displayTitle="'no'" :secondaryTitle="'customer'" :returnValue="'gun'" :item="item" :noRepeat="true" :selectedFirst="true" @setItem="handleTreeSelect"/>
+        <Tree v-for="(item, i) in InvoicesTree?.data" :key="i" :leftIcon="MoreDotsVertical" :index="i" :displayTitle="'no'" :secondaryTitle="'customer'" :returnValue="'gun'" :item="item" :noRepeat="true" :selectedFirst="true" @setItem="handleTreeSelect"/>
       </div>
     </div>
   </div>

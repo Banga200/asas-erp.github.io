@@ -4,9 +4,11 @@ import Repeat from "~/components/Icons/Repeat.vue";
 import Item from "~/components/Icons/Item.vue";
 import Folder from "~/components/Icons/Folder.vue";
 import { onMounted } from "vue";
+import Button from "../Buttons/Button.vue";
 import ArrowTree from "~/components/Icons/Arrows/ArrowTree.vue";
 const emit = defineEmits(['setItem'])
 const opened = ref(false);
+const showIcon = ref(false)
 const props = defineProps([
   "text",
   "displayTitle",
@@ -44,11 +46,17 @@ function openTree(item, index) {
   emit('setItem', item[props.returnValue], index)
   opened.value = !opened.value;
 }
+function onItemhover() {
+  showIcon.value = true
+}
+function onItemLeave() {
+  showIcon.value = false
+}
 </script>
 <template>
   <ul class="tree">
-    <li @click.stop="openTree(props.item, props.index)">
-      <div class="row item-row"  v-if="props.item">
+    <li @click.stop="openTree(props.item, props.index)" @mouseenter.stop="onItemhover" @mouseleave="onItemLeave">
+      <div class="d-flex item-row"  v-if="props.item">
         <div class="gap-4 d-flex">
           <!-- Arrow  -->
           <!-- <div class="icon" :class="[{ opened: opened }]" v-if="item?.child?.length !== 0">
@@ -68,9 +76,15 @@ function openTree(item, index) {
         </div>
 
         <!-- Left Icon -->
-        <div class="icon" v-if="props.leftIcon">
-          <component :is="props.leftIcon" />
-        </div>
+        <Transition appear name="fade">
+          <Button :size="'xx-small'"  :color="'neutral-200'"  :onlyIcon="true" :icon="props.leftIcon"  :menuItems="[
+            {
+            id: 1,
+            text:'تكرار الفاتورة'
+          }
+          ]" :menu="true" :menuLocation="'left'"/>
+            <!-- <component :is="props.leftIcon" /> -->
+        </Transition>
       </div>
       <div v-if="opened">
         <TransitionGroup appear name="fade">

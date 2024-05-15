@@ -317,6 +317,11 @@
     box-shadow: $boxShadow-sm;
     z-index: 9999;
     color: $neutral-900;
+    &.combobox {
+        position: fixed !important;
+        right: auto !important;
+
+    }
     &.button {
         width: max-content;
     }

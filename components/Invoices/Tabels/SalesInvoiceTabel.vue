@@ -507,7 +507,7 @@ function getUnitsAndWarehouse(index) {
             v-model:input="item.quantity"
             @setInput="handleQuantity"
             :color="
-              item.itemGUN ? (item.quantity === 0 ? 'danger' : undefined) : 1
+              item?.itemGUN || item?.gun ? ((item.quantity === 0 || item.warehouseQuantity <= 0) ? 'danger' : undefined) : undefined
             "
             :index="i"
             :inputToolTipText="

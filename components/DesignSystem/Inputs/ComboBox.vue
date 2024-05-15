@@ -159,6 +159,12 @@ function unfocus() {
 }
 function focus() {
   isOpen.value = true;
+  var dropdownPosition = inputElement.value.getBoundingClientRect();
+  console.log(dropdownPosition)
+  ulMenu.value.style.left = dropdownPosition.x - 22 +  'px';
+  ulMenu.value.style.top = dropdownPosition.y + 1 + inputElement.value.offsetHeight + 'px' ;
+  ulMenu.value.style.width = dropdownPosition.width + 20 +  'px';
+  
 }
 function openAdvanceSearch() {
   if (!input.value) {
@@ -279,7 +285,7 @@ function handleLinkKeydown(index) {
     </div>
     <!-- Menu  -->
     <div
-      class="dropMenu"
+      class="dropMenu combobox"
       :class="{ virtual: props.bigData }"
       v-show="isOpen && !disabled"
       ref="ulMenu"
