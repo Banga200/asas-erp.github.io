@@ -48,7 +48,6 @@ function doublePrev() {
     }
 }
 function activeItem(index)  {
-    console.log(items.value)
     items.value[index].classList.add("selected")
 }
 function clearSelected() {

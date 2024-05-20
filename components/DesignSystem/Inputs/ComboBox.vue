@@ -160,7 +160,6 @@ function unfocus() {
 function focus() {
   isOpen.value = true;
   var dropdownPosition = inputElement.value.getBoundingClientRect();
-  console.log(dropdownPosition)
   ulMenu.value.style.left = dropdownPosition.x - 22 +  'px';
   ulMenu.value.style.top = dropdownPosition.y + 1 + inputElement.value.offsetHeight + 'px' ;
   ulMenu.value.style.width = dropdownPosition.width + 20 +  'px';

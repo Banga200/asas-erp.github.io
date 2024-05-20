@@ -29,7 +29,7 @@ function hasDiscount(customerID, index) {
 <template>
   <div class="flex-column pr-8 pl-8 gap-6">
     <div class="row flex-column-end gap-6">
-     
+    
       <ComboBox
         v-model:valueReturn="Customer.gun"
         :label="'العميل'"

@@ -229,6 +229,9 @@ table {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+section {
+    position: relative;
+}
 .gap-2{ gap: $gap-2 !important}
 .gap-4{  gap: $gap-4 !important}
 .gap-6{  gap: $gap-6 !important}

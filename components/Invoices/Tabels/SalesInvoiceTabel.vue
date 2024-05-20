@@ -17,6 +17,7 @@ import Model from "~/components/DesignSystem/Generals/Model.vue";
 import AlternativeItems from "../Models/AlternativeItems.vue";
 import Popover from "~/components/DesignSystem/Generals/Popover.vue";
 import { useRoute } from "vue-router";
+import { isNumber } from "~/node_modules/@intlify/shared/dist/shared";
 const route = useRoute();
 const dialog = ref(false);
 const props = defineProps(["recalculate", "itemValidation", "isEdit"]);
@@ -26,8 +27,10 @@ const emit = defineEmits([
   "recalculateTotalDiscount",
   "clearValidation",
   "showAlternativeItems",
-  "calculate"
+  "calculate",
+  
 ]);
+const {toDouble} = useCalculateNumbers()
 const salesStore = useSalesStore();
 const commonStore = useCommonStore();
 const priceTitle = ref("");
@@ -39,6 +42,7 @@ const {
   ItemDetails,
   GeneralFields,
   PriceType,
+  IsDetailsOnly
 } = storeToRefs(commonStore);
 let timeout = null;
 const page = ref(1);
@@ -52,14 +56,18 @@ onMounted(() => {
     
   }
 })
-watch(
-  () => props.recalculate,
-  (newValue) => {
-    if (newValue) {
-      setTotal(null);
-    }
-  }
-);
+onUnmounted(() => {
+  IsDetailsOnly.value = false
+})
+// watch(
+//   () => props.recalculate,
+//   (newValue) => {
+//     if (newValue) {
+//       console.log(newValue)
+//       setTotal(null);
+//     }
+//   }
+// );
 
 function getItems() {
   if (timeout) {
@@ -91,14 +99,13 @@ async function getItemDetails(itemID, index) {
 function removeItem(index) {
   commonStore.RemoveItem(index);
 }
-const isDetailsOnly = ref(false);
 async function handleUnit(unitID, index) {
   let unitIndex = ItemDetails.value[index]?.nonServiceData?.units.findIndex(
     (unit) => {
       return unit.gun === unitID;
     }
   );
-   if (!isDetailsOnly.value) {
+   if (!IsDetailsOnly.value) {
     if (unitIndex >= 0) {
     emit("clearValidation");
     // let item = Items.value.find((item) => {
@@ -119,14 +126,14 @@ async function handleUnit(unitID, index) {
 
     NewItems.value[index].taxValue = useHandleTax(
       NewItems.value[index].taxValue,
-      NewItems.value[index].price * 1
+      (NewItems.value[index].price * 1) - NewItems.value[index].discount
     );
     handleQuantity(null, index);
     setTotal(index);
     emit("recalculateTotalDiscount", GeneralFields.value.totalDiscount);
   }
    }
-   isDetailsOnly.value = false
+  
 }
 async function handleWarehouse(warehouseID, index) {
   await commonStore.GetItemQuantityByWarehouse(
@@ -143,6 +150,7 @@ async function handleQuantity(quantity, index) {
       return unit.gun === NewItems.value[index].unitGUN;
     }
   );
+  
   if (unitIndex >= 0) {
     let unit = await ItemDetails.value[index]?.nonServiceData?.units[unitIndex];
     NewItems.value[index].warehouseQuantity =
@@ -151,14 +159,17 @@ async function handleQuantity(quantity, index) {
   setTotal(index);
 }
 function handlePrice(price, index) {
-  setTotal(index);
+ 
+  if (NewItems.value[index]?.price >= 0) {
+    setTotal(index);
+  }
  
 }
 function handleDiscount(discount, index) {
   if (typeof discount === "string" && discount) {
     if (discount.includes("%")) {
       discount = discount.split("%")[0];
-      discount = (parseFloat(discount) / 100) * NewItems.value[index].total;
+      discount = isNumber(discount) ? (parseFloat(discount.toFixed(2)) / 100) * NewItems.value[index].total : 0;
       NewItems.value[index].discount = useHandleDiscount(
         discount,
         NewItems.value[index].quantity,
@@ -171,7 +182,7 @@ function handleDiscount(discount, index) {
       const isNumber = isNaN(parseInt(discount)) ? false : true;
       if (isNumber) {
         NewItems.value[index].discount = useHandleDiscount(
-          parseInt(discount),
+          discount,
           NewItems.value[index].quantity,
           NewItems.value[index].total,
           NewItems.value[index].price
@@ -182,6 +193,7 @@ function handleDiscount(discount, index) {
         setNet(index);
       }
     }
+    handleTax(index)
   }
 }
 function setTotal(index) {
@@ -193,7 +205,7 @@ function setTotal(index) {
       handleTax(i);
       item.net = item.total - item.discount + item.taxValue;
     }
-    emit("restRecalculate");
+    // emit("restRecalculate");
   } else {
     NewItems.value[index].total =
       NewItems.value[index].price * NewItems.value[index].quantity;
@@ -205,24 +217,23 @@ function setTotal(index) {
   }
 }
 function handleTax(index) {
-  if (NewItems.value[index]?.gun) {
+  if (NewItems.value[index]?.gun || NewItems.value[index].itemGUN) {
     NewItems.value[index].taxValue = useHandleTax(
-    ItemDetails.value[index]?.currentTaxValue,
-    NewItems.value[index].total
+    ItemDetails.value[index]?.currentTaxValue ,
+    NewItems.value[index].total - NewItems.value[index].discount
   );
   }
   
   NewItems.value[index].net =
-    NewItems.value[index].total + NewItems.value[index].taxValue;
+  NewItems.value[index].total + NewItems.value[index].taxValue;
 
-  setNet(index);
+  // setNet(index);
 }
 function setNet(index) {
   NewItems.value[index].net =
     NewItems.value[index].total -
     NewItems.value[index].discount +
     NewItems.value[index].taxValue;
-
     emit('calculate')
 }
 function getSelectedWarehouseIndex(warehouseID, index) {
@@ -321,9 +332,9 @@ function handleKeyupDelete(event, index) {
   } 
 }
 function getUnitsAndWarehouse(index) {
-  if ((props.isEdit && !ItemDetails.value[index]?.type) && NewItems.value[index].itemGUN) {
+  if ((props.isEdit && !ItemDetails.value[index]?.type) && NewItems.value[index].itemGUN || (!props.isEdit && !ItemDetails.value[index]?.type) && NewItems.value[index].itemGUN) {
     if (NewItems.value[index].type !== 2) {
-      isDetailsOnly.value = true
+      IsDetailsOnly.value = true
       getItemDetails(NewItems.value[index].itemGUN, index);
     }
   }
@@ -350,7 +361,7 @@ function getUnitsAndWarehouse(index) {
     <tbody v-if="NewItems.length > 0">
       <!-- click event on the ROW only for Edit Inovice  -->
       <tr v-for="(item, i) in NewItems" :key="i" @click.capture="getUnitsAndWarehouse(i)">
-        {{ handlePrice(0, i) }}
+        {{  handlePrice(0, i)  }}
         <!-- الرقم  -->
         <td class="text-center align-center gap-4 justify-center">
           {{ i + 1 }} <span class="circle" v-if="item.forSale === false"></span>
@@ -505,7 +516,7 @@ function getUnitsAndWarehouse(index) {
           <TextBox
             :size="'sm'"
             v-model:input="item.quantity"
-            @setInput="handleQuantity"
+            @changeInput="handleQuantity"
             :color="
               item?.itemGUN || item?.gun ? ((item.quantity === 0 || item.warehouseQuantity <= 0) ? 'danger' : undefined) : undefined
             "
@@ -527,7 +538,7 @@ function getUnitsAndWarehouse(index) {
             :leftIcon="Sort"
             :size="'sm'"
             v-model:input="item.price"
-            @setInput="handlePrice"
+            
             @changeInput="handlePriceChange"
             :index="i"
             :inputToolTipText="item?.unitPriceList ? item?.unitPriceList[0]?.price :'' "
@@ -574,7 +585,7 @@ function getUnitsAndWarehouse(index) {
             :leftIcon="Percent"
             :size="'sm'"
             v-model:input="item.discount"
-            @setInput="handleDiscount"
+            @changeInput="handleDiscount"
             :index="i"
           />
         </td>

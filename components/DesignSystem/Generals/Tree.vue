@@ -6,7 +6,7 @@ import Folder from "~/components/Icons/Folder.vue";
 import { onMounted } from "vue";
 import Button from "../Buttons/Button.vue";
 import ArrowTree from "~/components/Icons/Arrows/ArrowTree.vue";
-const emit = defineEmits(['setItem'])
+const emit = defineEmits(['setItem', "setMenuItem"])
 const opened = ref(false);
 const showIcon = ref(false)
 const props = defineProps([
@@ -52,6 +52,9 @@ function onItemhover() {
 function onItemLeave() {
   showIcon.value = false
 }
+function setMenuItem(id) {
+  emit('setMenuItem', id)
+}
 </script>
 <template>
   <ul class="tree">
@@ -77,12 +80,12 @@ function onItemLeave() {
 
         <!-- Left Icon -->
         <Transition appear name="fade">
-          <Button :size="'xx-small'"  :color="'neutral-200'"  :onlyIcon="true" :icon="props.leftIcon"  :menuItems="[
+          <Button :size="'xx-small'"  :color="'neutral-200'"  :onlyIcon="true" :icon="props.leftIcon"  v-if="showIcon" :menuItems="[
             {
             id: 1,
             text:'تكرار الفاتورة'
           }
-          ]" :menu="true" :menuLocation="'left'"/>
+          ]" :menu="true" :menuLocation="'left'" @setMenuItem="setMenuItem"/>
             <!-- <component :is="props.leftIcon" /> -->
         </Transition>
       </div>

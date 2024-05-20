@@ -23,6 +23,7 @@ export const useCommonStore = defineStore("common", () => {
     OperationalHandingOutInvoice: 16,
     OperationalHandingInInvoice: 17,
   };
+  const NewBranchPriceItems = ref(null);
   const EditCustomerGun = ref(null)
   const InvoicesTree = ref(null);
   const GeneralFields = ref({
@@ -49,6 +50,7 @@ export const useCommonStore = defineStore("common", () => {
     time: "",
     today: "",
   });
+  const IsDetailsOnly = ref(false);
   const AlternativesItems = ref(null); // الاصناف البديلة
   const SelectedAlternative = ref(null); // اذا تم اختيار صنف بديل
   const ItemId = ref(null);
@@ -138,7 +140,7 @@ export const useCommonStore = defineStore("common", () => {
             branchId: GeneralFields.value.branchGUN,
             IsCurrentTaxRequired: GeneralFields.value.isTaxApplied,
             isCash: GeneralFields.value.isCash,
-            docDate: GeneralFields.value.dateTime,
+            docDate: GeneralFields.value.isTaxApplied ? GeneralFields.value.dateTime : '',
           },
         }
       )
@@ -176,6 +178,34 @@ export const useCommonStore = defineStore("common", () => {
             IncreaseItem(index);
           } else {
             handleCodesMessage(res.code, res.data.viewMessage);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } catch (error) {}
+  }
+  async function GetItemBaseOnBranch(itemsIds) {
+    console.log(itemsIds)
+    try {
+      await useServerFetch(`item/item-data-of-changing-branch-of-offer-price`, 
+      {
+        params: {
+          branchId: GeneralFields.value.branchGUN,
+          IsCurrentTaxRequired: GeneralFields.value.isTaxApplied,
+          isCash: GeneralFields.value.isCash,
+          docDate: GeneralFields.value.isTaxApplied ? GeneralFields.value.dateTime : '',
+          ItemId: itemsIds,
+          priceType: GeneralFields.value.priceType,
+          invoiceDate: GeneralFields.value.dateTime
+        },
+      }
+      )
+        .then((res) => {
+          if (res.code === "200") {
+            NewBranchPriceItems.value = res.data.viewData
+          } else {
+            handleCodesMessage(res.code, res.data[0].viewMessage);
           }
         })
         .catch((error) => {
@@ -305,6 +335,7 @@ export const useCommonStore = defineStore("common", () => {
           docType: docType,
           isCash: GeneralFields.value.isCash,
           IsCurrentTaxRequired: GeneralFields.value.isTaxApplied,
+          invoiceDate: GeneralFields.value.isTaxApplied ? GeneralFields.value.dateTime : ''
         },
       })
         .then((res) => {
@@ -327,7 +358,7 @@ export const useCommonStore = defineStore("common", () => {
               // GetItemDetails(alternativeId, itemIndex, res.data.viewData.itemName)
             }
           } else {
-            handleCodesMessage(res.code, res.data.viewMessage);
+            handleCodesMessage(res.code, res.data[0].viewMessage);
           }
         })
         .catch((error) => {
@@ -359,7 +390,7 @@ export const useCommonStore = defineStore("common", () => {
       discount: data.currentDefaultDiscountPercentage,
     };
   }
-  function IncreaseItem(index) {
+  function  IncreaseItem(index) {
     let isLastItemEmpty = NewItems.value[NewItems.value.length - 1];
     if (isLastItemEmpty.itemGUN !== "") {
       NewItems.value.push({
@@ -388,6 +419,7 @@ export const useCommonStore = defineStore("common", () => {
     }
   }
   function setPriceList(unit, index) {
+    console.log(unit, index)
     NewItems.value[index].unitPriceList[0].price = unit.sellingPrice;
     NewItems.value[index].unitPriceList[1].price = unit.lowestPrice;
     NewItems.value[index].unitPriceList[2].price = unit.wholesalePrice;
@@ -463,7 +495,8 @@ export const useCommonStore = defineStore("common", () => {
   }
 
   function SetViewGeneralData(data, isEdit = false) {
-    let date = new Date(data.dateTime)
+    let date = new Date(data.currentDateTime || data.dateTime)
+    
     SalesMen.value= [
       {name: data.salesmanName}
     ]
@@ -481,10 +514,10 @@ export const useCommonStore = defineStore("common", () => {
 
     GeneralFields.value.date  = date.toISOString().substring(0 , 10);
     GeneralFields.value.time = date.toTimeString().split(' ')[0]
-    GeneralFields.value.isTaxApplied =
-    data.isTaxApplied;
+    GeneralFields.value.isTaxApplied = data.isTaxApplied;
     // إذا كان عرض فقط يتم تحديد الحقول 
     if (!isEdit) {
+      Branches.value = [{gun: data.branchGUN ? data.branchGUN : '', name2: data.branchName}]
       PriceType.value = [
         {
           id: data.priceType,
@@ -506,15 +539,18 @@ export const useCommonStore = defineStore("common", () => {
           { name: data.salesmanName || "" },
         ])
       : null;
-      Customer.value = {gun: '', ...data.customer}
+      
+     
     }
     else {
-      resetSomefields();
+      resetSomefields(data.isTaxApplied);
     }
-
-      
+    
+    
+    Customer.value = {gun: data.customer?.gun ? data.customer.gun :  '', ...data.customer}
+    GeneralFields.value.branchGUN = data.branchGUN ? data.branchGUN : ''
   }
-  function resetSomefields() {
+  function resetSomefields(isTaxApplied) {
     PriceType.value = [
       {
         id: 1,
@@ -533,7 +569,7 @@ export const useCommonStore = defineStore("common", () => {
         name: "سعر التكلفة",
       },
     ];
-    TaxApplied.value = [
+    TaxApplied.value = !isTaxApplied ?  [
       {
         id: false,
         name: "بدون",
@@ -542,6 +578,16 @@ export const useCommonStore = defineStore("common", () => {
         id: true,
         name: "حسب المجموعة الضريبية",
       },
+    ] : [
+      {
+        id: true,
+        name: "حسب المجموعة الضريبية",
+      },
+      {
+        id: false,
+        name: "بدون",
+      },
+      
     ];
   }
   function setPriceInItem(price, index) {
@@ -600,6 +646,8 @@ export const useCommonStore = defineStore("common", () => {
   }
   return {
     // States
+    NewBranchPriceItems,
+    IsDetailsOnly,
     InvoicesTree,
     GeneralFields,
     FooterDetails,
@@ -630,6 +678,7 @@ export const useCommonStore = defineStore("common", () => {
     GetAlternativesItems,
     GetInsertAlternativesItems,
     GetInsertAccessoriesItems,
+    GetItemBaseOnBranch,
     setPriceList,
     SetDefaultFields,
     setPriceInItem,

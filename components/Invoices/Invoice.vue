@@ -45,6 +45,7 @@ import PayWays from "~/components/Invoices/Tabs Contents/PayWays.vue";
 
 import { useRoute } from "vue-router";
 import DropDown from "../DesignSystem/Inputs/DropDown.vue";
+const {toDouble} = useCalculateNumbers()
 const emit = defineEmits(["recalculatePrice"]);
 const route = useRoute();
 const { errorHandle, warningHandle } = useNotify();
@@ -64,6 +65,9 @@ const alternativeDialog = ref(false);
 const branchSelected = ref(false);
 const deleteDialog = ref(false);
 const isEdit = ref(false);
+const treeDisabled = ref(false);
+const contentDisabled = ref(true);
+const tableDisabled = ref(true);
 const validation = ref({
   customer: false,
   item: false,
@@ -75,6 +79,7 @@ const salesStore = useSalesStore();
 const { Sales } = storeToRefs(salesStore);
 const commonStore = useCommonStore();
 const {
+  NewBranchPriceItems,
   InvoicesTree: ViewInvoice,
   GeneralFields,
   SelectedAlternative,
@@ -92,6 +97,7 @@ const {
   PriceType,
   TaxApplied,
 } = storeToRefs(commonStore);
+let date = new Date();
 const userStore = useUserStore();
 await userStore.CheckPermissions(route.meta.moduleId);
 const { Permissions } = storeToRefs(userStore);
@@ -149,6 +155,9 @@ const footerTabs = shallowRef({
 const isNew = ref(true);
 
 onMounted(async () => {
+  GeneralFields.value.date = date.toISOString().substring(0, 10);
+  GeneralFields.value.time = date.toTimeString().split(" ")[0];
+  handleDateTime();
   if (OfferPrice) {
     await OfferPriceStore.GetOfferPriceInvoices();
   } else if (ReturnInvoice) {
@@ -165,19 +174,20 @@ onUpdated(() => {
   //     footerDetails.value.itemsCount = invoice.itemsCount;
   //     footerDetails.value.quantityCount = invoice.quantityTotal;
   //     footerDetails.value.weight = invoice.weightTotal;
-
   //     footerFields.value.invoiceValue = invoice.amountTotal;
   //   }
   // }
 });
 
 async function AddNewInvoice() {
-  let date = new Date();
   await userStore.CheckPermissions(route.meta.moduleId);
   if (Permissions.value?.canAccess) {
     if (Permissions.value?.canAdd) {
       commonStore.ClearEverythings();
       isNew.value = false;
+      treeDisabled.value = true;
+      tableDisabled.value = false;
+      contentDisabled.value = false;
       // branchSelected.value = true;
       commonStore.SetDefaultFields();
       await commonStore.GetBranches();
@@ -201,6 +211,9 @@ async function AddNewInvoice() {
   }
 }
 function cancel() {
+  contentDisabled.value = true;
+  tableDisabled.value = true;
+  treeDisabled.value = false;
   commonStore.ClearEverythings();
   footerDetails.value = {
     itemsCount: 0,
@@ -219,29 +232,33 @@ function cancel() {
     invoiceValue: 0,
   };
   isNew.value = true;
+  GeneralFields.value.isCash = true;
   OfferPriceStore.GetOfferPriceInvoices();
+  let items = document.querySelectorAll(".tree li .item-row");
+  items.forEach((item) => {
+    item.classList.remove("selected");
+  });
+  items[0].classList.add("selected");
 }
 // إذا كان فيه حسم لدى العميل يتم إظهار تنبيه
 const salemanIndex = ref(null);
 async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
-  let selectedCustomerIndex = await Customers.value.findIndex((customer) => {
+  let selectedCustomerIndex = null
+  if(Customers.value){
+    selectedCustomerIndex = await Customers.value.findIndex((customer) => {
     return customer.gun === customerID;
   });
-  if (selectedCustomerIndex >= 0) {
+  }
+  if (selectedCustomerIndex && selectedCustomerIndex >= 0) {
     if (!Customers.value[selectedCustomerIndex].isSuspend) {
-      validation.value.customer = false
+      validation.value.customer = false;
     }
-    
+
     if (NewItems.value[0].itemGUN) {
       const selectedCustomer = { ...Customers.value[selectedCustomerIndex] };
       Customer.value = selectedCustomer;
-      if (isInoviceTypeChange) {
-        chooseenCustomerDialog.value = true;
-        customerDiscountTitle = `يوجد حسم لدى هذا العميل على الفواتير ${
-          GeneralFields.value.isCash ? "نقد" : "اجل"
-        } هل تريد اعتماد الحسم الذي لدى العميل`;
-      }
-      if (selectedCustomer.salesmanGUN) {
+      
+        if (selectedCustomer.salesmanGUN) {
         let saleman = SalesMen.value.findIndex((saleman) => {
           return saleman.gun === selectedCustomer.salesmanGUN;
         });
@@ -249,7 +266,6 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
           salemanIndex.value = saleman;
         }
       }
-      if (NewItems.value[0].itemGUN) {
         // إذاوجد سعر و حسم لدى العميل
         if (
           (selectedCustomer.cashInvoiceDiscountPercentage ||
@@ -265,8 +281,16 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
               selectedCustomer.creditInvoiceDiscountPercentage) &&
             NewItems.value[0].itemGUN
           ) {
-            chooseenCustomerDialog.value = true;
-            customerDiscountTitle = "هل تريد اعتماد الحسم الخاص بالعميل";
+            if (isInoviceTypeChange) {
+              chooseenCustomerDialog.value = true;
+              customerDiscountTitle = `يوجد حسم لدى هذا العميل على الفواتير ${
+                GeneralFields.value.isCash ? "نقد" : "اجل"
+              } هل تريد اعتماد الحسم الذي لدى العميل`;
+            }
+            else {
+              chooseenCustomerDialog.value = true;
+             customerDiscountTitle = "هل تريد اعتماد الحسم الخاص بالعميل";
+            }
           }
           // شيك اذا نوع السعر مختلف عن نوع السعر المختار
           if (selectedCustomer.defaultPrice && NewItems.value[0].itemGUN) {
@@ -278,10 +302,9 @@ async function checkCustomerHasDiscount(customerID, isInoviceTypeChange) {
             }
           }
         }
-      }
+      
     }
   }
-
 }
 // إذا كان فيه حسم لدى العميل يتم حفظه
 function setCustomerDiscount() {
@@ -302,10 +325,6 @@ function setCustomerDiscount() {
 }
 // شيك اذا كان فيه صنف مختار في "نقد" و غير موجود في "اجل" واعطاء علامة حمراء
 async function checkInvoiceChanges(isCash) {
-  if (isCash) {
-    validation.value.customer = false
-  }
-  let flag = false;
   if (OfferPrice) {
     await commonStore.GetBranchDataForOfferPrice(
       GeneralFields.value.branchGUN,
@@ -317,40 +336,50 @@ async function checkInvoiceChanges(isCash) {
   }
   checkCustomerHasDiscount(Customer.value.gun, true);
 
+  CheckNoneSaleItems();
+  if (isCash) {
+    validation.value.customer = false;
+  }
+}
+function CheckNoneSaleItems() {
   for (let index = 0; index < NewItems.value.length - 1; index++) {
+    let flag = false;
     const element = NewItems.value[index];
     let item = Items.value.find((item) => {
-      return item.gun === element.itemGUN;
+      return item.gun === (element.itemGUN || element.gun);
     });
+    
     if (!item) {
+      console.log(item)
       flag = true;
-      NewItems.value[index].forSale = false;
+      element.forSale = false;
     }
     if (flag) {
       notForSale.value = true;
     } else {
-      notForSale.value = true;
       element.forSale = true;
-      notForSale.value = false;
     }
   }
+  console.log(Items.value)
 }
 // اذا صنف ليس للبيع يتم حذفه بعد الضغط على زر "حذف الكل"
-function handleNoneSaleItems() {
+function handleDeleteNoneSaleItems() {
+  console.log(NewItems.value[2]);
   for (let index = 0; index < NewItems.value.length - 1; index++) {
     const element = NewItems.value[index];
     if (element.forSale === false) {
-      NewItems.value.splice(index, 1);
+      commonStore.RemoveItem(index);
+      // NewItems.value.splice(index, 1);
       ItemDetails.value.splice(index, 1);
-      index--;
     }
   }
   notForSale.value = false;
+  // calculateInvoiceFooter()
 }
 async function handleBranch() {
   // شيك اذا الفاتورة جديدة ام فقط جلب الفروع
-  if (isNew === false) {
-    await checkInvoiceChanges();
+
+  if (isNew.value === false || isEdit.value) {
     // إذا العميل المختار غير موجود في الفرع الاخر "اجعل الحقل فارغ"
     if (Customer.value?.gun) {
       let customer = Customers.value?.find((item) => {
@@ -366,12 +395,31 @@ async function handleBranch() {
       return item.gun === GeneralFields.value.salesmanGUN;
     });
     if (!saleMan) {
-      GeneralFields.value.gun;
       salemanField.value = "";
     }
     // تحقق اذا كان يوجد صنف واحد على الاقل
     if (NewItems.value[0]?.itemGUN !== "") {
       priceDialog.value = true;
+      if (OfferPrice) {
+        await commonStore.GetBranchDataForOfferPrice(
+          GeneralFields.value.branchGUN,
+          GeneralFields.value.isCash
+        );
+        let ItemsIds = [];
+        CheckNoneSaleItems();
+        for (let index = 0; index < NewItems.value.length - 1; index++) {
+          const element = NewItems.value[index];
+          if (element.forSale === true) {
+            ItemsIds.push(element.gun || element.itemGUN);
+          }
+        }
+        ItemsIds.length > 0
+          ? await commonStore.GetItemBaseOnBranch(ItemsIds)
+          : "";
+      } else if (ReturnInvoice) {
+      } else if (SalesInvoice) {
+      } else if (Booked) {
+      }
     }
   }
 }
@@ -422,10 +470,6 @@ async function handleTaxApplied(isTaxApplied, index) {
     }
   }
 }
-// watch(NewItems, (value) => {
-//     calculateInvoiceFooter();
-
-// });
 
 function calculateInvoiceFooter() {
   let quantityCount = 0;
@@ -435,25 +479,31 @@ function calculateInvoiceFooter() {
   let total = 0.0;
   let discount = 0.0;
   let taxValue = 0.0;
-  for (let index = 0; index < NewItems.value.length; index++) {
+  let items =
+    isEdit.value || !isNew.value
+      ? NewItems.value.length - 1
+      : NewItems.value.length;
+  for (let index = 0; index < items; index++) {
     const element = NewItems.value[index];
-
-    if (element) {
+    if (element && element.unitName) {
       quantityCount += parseInt(element.quantity);
       total += element.total;
       taxValue += element.taxValue;
-      discount += parseFloat(element.discount);
+      discount += element.discount;
       net += element.net;
     }
   }
-  footerDetails.value.itemsCount = isEdit.value || !isNew.value ? NewItems.value.length - 1 :  NewItems.value.length
+  footerDetails.value.itemsCount =
+    isEdit.value || !isNew.value
+      ? NewItems.value.length - 1
+      : NewItems.value.length;
   footerDetails.value.quantityCount = parseInt(quantityCount);
   // left Side
-  footerFields.value.total = total;
+  footerFields.value.total = toDouble(total);
   footerFields.value.totalBeforeTax = total - discount;
-  footerFields.value.taxValue = taxValue;
+  footerFields.value.taxValue = toDouble(taxValue);
   footerFields.value.discount = discount;
-  footerFields.value.invoiceValue = net;
+  footerFields.value.invoiceValue = toDouble(net);
 }
 function handleDiscount(discount) {
   discount = discount ? discount : footerDetails.value.discount;
@@ -462,7 +512,7 @@ function handleDiscount(discount) {
       discount = parseInt(discount.split("%")[0]);
       discount = (discount / 100) * footerFields.value.total; // المجموع الكلي للفاتورة قبل الخصم والضريبة
 
-      footerFields.value.discount = discount;
+      // footerFields.value.discount = discount;
       // parseFloat(
       //   useHandleDiscount(
       //     discount,
@@ -479,6 +529,7 @@ function handleDiscount(discount) {
       //   footerFields.value.total, // المجموع الكلي للفاتورة قبل الخصم والضريبة
       //   NewItems.value[index].price
       // );
+      console.log(discount);
       setDiscountToAllItems(footerFields.value.discount);
     }
   } else {
@@ -495,7 +546,9 @@ function setDiscountToAllItems(discount) {
   GeneralFields.value.totalDiscount = discount;
   discount = parseInt(discount);
   if (discount > 0) {
-    let discountDivided = discount / (NewItems.value.length - 1);
+    let discountDivided = parseFloat(
+      discount / (NewItems.value.length - 1).toFixed(2)
+    );
 
     for (let index = 0; index < NewItems.value.length - 1; index++) {
       const element = NewItems.value[index];
@@ -512,11 +565,29 @@ function setDiscountToAllItems(discount) {
 }
 
 // اذا ضغط على زر نعم (يريد تغير الاسعار على حسب الفرع المختار)
-function setPriceOnItems() {}
+function setPriceOnItems() {
+  for (let index = 0; index < NewItems.value.length - 1; index++) {
+    const element = NewItems.value[index];
+    let newItem = NewBranchPriceItems.value.find(item => {
+      return item.itemGUN === (element.itemGUN || element.gun) 
+    });
+    if (newItem) {
+      
+      console.log(element)
+        NewItems.value[index].price = newItem.nonServiceData.units[0].sellingPrice
+        commonStore.setPriceList(newItem.nonServiceData.units[0], index);
+        commonStore.ItemDetails.splice(index, 1, {currentTaxValue: newItem.currentTaxValue, ...newItem.nonServiceData});
+        // element.unitPriceList = newItem.nonServiceData.units[0].
+        
+      
+    }
+  }
+  priceDialog.value = false
+}
 
 function handlePriceType() {
   if (!isCustomerPriceCheck.value) {
-    if (NewItems.value[0]?.itemGUN) {
+    if (NewItems.value[0]?.itemGUN || NewItems.value[0]?.gun) {
       if (Customer.value.defaultPrice !== GeneralFields.value.priceType) {
         priceTypeDialog.value = false;
       } else {
@@ -527,6 +598,7 @@ function handlePriceType() {
 }
 // اذا ضغط على زر نعم (يريد تغير الاسعار على حسب نوع السعر)
 function setPriceType() {
+  
   let type = defaultPrice.value
     ? defaultPrice.value
     : GeneralFields.value.priceType; // 1 or 2 or 3 or 4
@@ -540,7 +612,6 @@ function setPriceType() {
   }
   recalculate.value = true;
   priceTypeDialog.value = false;
-  recalculate.value = true;
   defaultPrice.value = null;
 }
 function setCustomerCheckValue() {
@@ -572,27 +643,34 @@ async function saveInvoice() {
         return;
       } else {
         if (isEdit.value) {
-          // إذا كان العميل نفس العميل اللي جاء مع الفاتورة عادي يعدل على الفاتورة 
+          // إذا كان العميل نفس العميل اللي جاء مع الفاتورة عادي يعدل على الفاتورة
           if (Customer.value.gun === EditCustomerGun.value) {
             if (!validation.value.warehouse) {
-              await OfferPriceStore.EditOfferPriceInvoice(GeneralFields.value.gun);
-            } 
+              await OfferPriceStore.EditOfferPriceInvoice(
+                GeneralFields.value.gun
+              );
+            }
+          } else {
+            if (!Customer.value?.isSuspend) {
+              await OfferPriceStore.EditOfferPriceInvoice(
+                GeneralFields.value.gun
+              );
+              if (OfferPriceStore.success) {
+                refresh();
+              }
+            }
           }
-          else{
-            if ( !Customer.value?.isSuspend ) {
-              await OfferPriceStore.EditOfferPriceInvoice(GeneralFields.value.gun);
+        } else {
+          if (!Customer.value?.isSuspend) {
+            await OfferPriceStore.SaveOfferPriceInvoice();
+            if (OfferPriceStore.success) {
+              refresh();
             }
           }
         }
-        else {
-          if ( !Customer.value?.isSuspend ) {
-          await OfferPriceStore.SaveOfferPriceInvoice();
-          
-        }
-        }
         if (OfferPriceStore.success) {
           isNew.value = true;
-          isEdit.value = false
+          isEdit.value = false;
         }
       }
     }, 500);
@@ -611,8 +689,7 @@ function checkBeforeSave() {
   if (GeneralFields.value.isCash === false) {
     if (Customer.value.gun === EditCustomerGun.value) {
       validation.value.customer = false;
-    }
-    else if (!Customer.value.gun || Customer.value.isSuspend) {
+    } else if (!Customer.value.gun || Customer.value.isSuspend) {
       // وضع تنبيه في حقل العميل ولا يتم الحفظ
       validation.value.customer = true;
     }
@@ -654,7 +731,7 @@ async function insertAlternative() {
 function handleDateTime() {
   try {
     if (GeneralFields.value.isTaxApplied) {
-      handleTaxApplied(GeneralFields.value.isTaxApplied)
+      handleTaxApplied(GeneralFields.value.isTaxApplied);
     }
     let convertedDate = "";
     let convertedTime = "";
@@ -678,7 +755,7 @@ function handleDateTime() {
 }
 
 function handleSaleman(saleman) {
-  console.log(saleman)
+  console.log(saleman);
 }
 
 async function deleteInvoice() {
@@ -696,16 +773,36 @@ function refresh() {
 }
 async function editInvoice() {
   isEdit.value = !isEdit.value;
+  tableDisabled.value = false;
+  contentDisabled.value = false;
   let invoiceId = GeneralFields.value.gun;
-  let date = new Date();
+
   if (isEdit.value) {
+    treeDisabled.value = true;
     await OfferPriceStore.GetOfferPriceInvoiceEditById(invoiceId);
     GeneralFields.value.date = date.toISOString().substring(0, 10);
     GeneralFields.value.time = date.toTimeString().split(" ")[0];
-    handleDateTime()
+    handleDateTime();
+  } else {
+    treeDisabled.value = false;
+    contentDisabled.value = true;
+    tableDisabled.value = true;
+    NewItems.value.splice(NewItems.value.length - 1, 1);
+    await OfferPriceStore.GetOfferPriceInvoiceItemsById(invoiceId);
+    tableDisabled.value = true;
+    contentDisabled.value = true;
   }
-  else {
-    await OfferPriceStore.GetOfferPriceInvoiceEditById(invoiceId);
+}
+function clearDisabled() {
+  treeDisabled.value = false;
+  contentDisabled.value = false;
+  tableDisabled.value = false;
+}
+function handleTreeOptions(optionId) {
+  // 1 === تكرار الفاتورة
+  if (optionId === 1) {
+    isNew.value = false;
+    treeDisabled.value = true;
   }
 }
 </script>
@@ -713,12 +810,18 @@ async function editInvoice() {
   <div class="row">
     <!-- Tree  -->
     <div class="right-side-tree col-12 col-md-2">
-      <div class="disabledAll" v-if="!isNew || isEdit"></div>
-      <InvoicesTree :SalesInvoice="SalesInvoice" :OfferPrice="OfferPrice" :Booked="Booked" :ReturnInvoice="ReturnInvoice"/>
+      <div class="disabledAll" v-if="treeDisabled"></div>
+      <InvoicesTree
+        @setTreeOption="handleTreeOptions"
+        :SalesInvoice="SalesInvoice"
+        :OfferPrice="OfferPrice"
+        :Booked="Booked"
+        :ReturnInvoice="ReturnInvoice"
+        @clearDisabled="clearDisabled"
+      />
     </div>
     <!-- Content  -->
     <div class="content border-right col-12 col-md-10">
-      <div class="disabledAll" v-if="isEdit ? false : isNew"></div>
       <!-- Buttons  -->
       <section class="top-buttons row">
         <!-- right side  -->
@@ -728,9 +831,9 @@ async function editInvoice() {
             :text="'جديد'"
             :rightIcon="Add"
             @click.capture="AddNewInvoice()"
-            v-if="isNew"
+            v-if="isNew && !isEdit"
             class="high_index"
-            :disabled="isEdit"/>
+          />
           <Button
             :color="'netural'"
             :text="'إلغاء'"
@@ -740,18 +843,21 @@ async function editInvoice() {
           ></Button>
           <Button
             :color="isEdit ? 'netural' : 'warning'"
-            :onlyIcon="true"
-            :icon="isEdit ? Close :Edit"
-            :class="{'high_index': isNew}"
-            :disabled="!isNew"
-            @click.capture="editInvoice"/>
+            :onlyIcon="isEdit ? false : true"
+            :text="isEdit ? 'إلغاء': undefined"
+            :icon="isEdit ? Close : Edit"
+            :rightIcon="isEdit ? Close : undefined"
+            :class="{ high_index: isNew }"
+            v-if="isNew"
+            @click.capture="editInvoice"
+          />
           <Button
             :color="'danger'"
             :onlyIcon="true"
             :icon="Delete"
             @click.capture="deleteDialog = true"
-            :class="{'high_index': isNew}"
-            :disabled="!isNew || isEdit"
+            :class="{ high_index: isNew }"
+            v-if="isNew && !isEdit"
           />
           <Button
             :color="'neutral'"
@@ -759,13 +865,13 @@ async function editInvoice() {
             :icon="Refresh"
             class="high_index"
             @click.capture="refresh"
-            :disabled="!isNew || isEdit"
+            v-if="isNew && !isEdit"
           />
           <Button
             :color="'neutral'"
             :onlyIcon="true"
             :icon="MoreDotsVertical"
-            :disabled="!isNew"
+            v-if="isNew && !isEdit"
           />
           <Post
             :text="'2233 مرحل /'"
@@ -783,23 +889,29 @@ async function editInvoice() {
         <!-- left side  -->
         <div class="d-flex align-center gap-6">
           <!-- Avatars  -->
-          <div class="avatar-group high_index" v-if="!SalesInvoice">
+          <div class="avatar-group high_index" v-if="!SalesInvoice && isEdit">
             <Popover :isHover="true" :position="'bottom-right'">
               <Avatar :icon="User" :borderColor="'warning'" :size="'md'" />
               <template v-slot:content>
-                <UserPopover :username="GeneralFields?.lastModifiedBy" :date="GeneralFields?.lastModifiedAt" :isEdit="true"/>
+                <UserPopover
+                  :username="GeneralFields?.lastModifiedBy"
+                  :date="GeneralFields?.lastModifiedAt"
+                  :isEdit="true"
+                />
               </template>
             </Popover>
             <Popover :isHover="true" :position="'bottom-right'">
               <Avatar :icon="User" :borderColor="'primary'" :size="'md'" />
               <template v-slot:content>
-                <UserPopover :username="GeneralFields?.createdBy" :date="GeneralFields?.createdAt"/>
+                <UserPopover
+                  :username="GeneralFields?.createdBy"
+                  :date="GeneralFields?.createdAt"
+                />
               </template>
             </Popover>
           </div>
-          <Button :color="'neutral'" :text="'باركود'" :rightIcon="Barcode" />
+          <Button :color="'neutral'" :text="'باركود'" :rightIcon="Barcode" v-if="isNew && !isEdit" />
           <Button
-            
             :color="'neutral'"
             :text="'طباعة'"
             :menuLocation="'right'"
@@ -811,17 +923,18 @@ async function editInvoice() {
               { text: 'معاينة قبل الطباعة' },
               { text: 'طباعة كاشير' },
             ]"
-          />
+            v-if="isNew && !isEdit"/>
           <Button
             :color="'primary'"
             :text="'حفظ'"
             :rightIcon="Save"
             @click.capture="saveInvoice"
-          />
+           v-if="!isNew"/>
         </div>
       </section>
       <!-- Details  -->
       <section>
+        <div class="disabledAll" v-if="contentDisabled"></div>
         <div class="row">
           <div class="sheet flex-column gap-8 col-12 col-md-7 pl-6 pb-4">
             <!-- Fields  -->
@@ -852,6 +965,7 @@ async function editInvoice() {
                   :isPage="false"
                   @setItem="handleBranch"
                   :selectFirstItem="true"
+                  :selectItem="GeneralFields.branchGUN"
                   v-model:valueReturn="GeneralFields.branchGUN"
                 />
               </div>
@@ -897,7 +1011,7 @@ async function editInvoice() {
                     :noFilter="true"
                     :items="TaxApplied"
                     v-model:valueReturn="GeneralFields.isTaxApplied"
-                    :selectFirstItem="isEdit || !isNew ? false: true"
+                    :selectFirstItem="isEdit || !isNew ? false : true"
                     @setItem="handleTaxApplied"
                   />
                 </div>
@@ -908,7 +1022,7 @@ async function editInvoice() {
                     :displayTitle="'name'"
                     :returnValue="'gun'"
                     :clearable="true"
-                    :selectFirstItem="isEdit || !isNew ? false: true"
+                    :selectFirstItem="isEdit || !isNew ? false : true"
                     v-model:input="salemanField"
                     v-model:valueReturn="GeneralFields.salesmanGUN"
                   />
@@ -993,10 +1107,12 @@ async function editInvoice() {
               <div>
                 <KeepAlive>
                   <component
-                  :is="customerTabs[customerTabSelected]"
-                  @customerHasDiscount="checkCustomerHasDiscount"
-                  :customerValidation="validation.customer"
-                :isDisplay="isEdit ? false : isNew" :isEdit="isEdit"/>
+                    :is="customerTabs[customerTabSelected]"
+                    @customerHasDiscount="checkCustomerHasDiscount"
+                    :customerValidation="validation.customer"
+                    :isDisplay="!treeDisabled && contentDisabled"
+                    :isEdit="isEdit"
+                  />
                 </KeepAlive>
               </div>
             </div>
@@ -1004,18 +1120,19 @@ async function editInvoice() {
         </div>
       </section>
       <!-- Tabel  -->
-        <section class="table-container-invoice high-index" >
-            <SalesInvoiceTabel
-            :isEdit="isEdit"
-            :itemValidation="validation.item"
-            :recalculate="recalculate"
-            @showAlternativeItems="() => (alternativeDialog = true)"
-            @restRecalculate="() => (recalculate = false)"
-            @recalculateTotalDiscount="setDiscountToAllItems"
-            @clearValidation="() => (validation.item = false)"
-            @calculate="calculateInvoiceFooter"
-          />
-        </section>
+      <section class="table-container-invoice high-index">
+        <div class="disabledAll" v-if="tableDisabled"></div>
+        <SalesInvoiceTabel
+          :isEdit="isEdit"
+          :itemValidation="validation.item"
+          :recalculate="recalculate"
+          @showAlternativeItems="() => (alternativeDialog = true)"
+          @restRecalculate="() => (recalculate = false)"
+          @recalculateTotalDiscount="setDiscountToAllItems"
+          @clearValidation="() => (validation.item = false)"
+          @calculate="calculateInvoiceFooter"
+        />
+      </section>
       <!-- Footer Details  -->
       <section class="invoice-footer">
         <div class="row">
@@ -1213,7 +1330,7 @@ async function editInvoice() {
       :text="'اصناف غير متاحة في المبيعات او غير موجودة في الفرع المحدد'"
       :leftActionText="'حذف الكل'"
       :noIcon="true"
-      @clickLeftAction="handleNoneSaleItems"
+      @clickLeftAction="handleDeleteNoneSaleItems"
     />
     <Model
       class="fixed"
@@ -1231,3 +1348,4 @@ async function editInvoice() {
     </Model>
   </div>
 </template>
+~/composables/useCalculateNumbers.js

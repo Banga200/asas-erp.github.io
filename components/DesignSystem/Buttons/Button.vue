@@ -3,6 +3,7 @@ import ArrowDown from "../../Icons/Arrows/ArrowDown.vue";
 import Add from "../../Icons/Buttons/Add.vue";
 import Item from "../Generals/Item.vue";
 import ToolTip from "../Generals/ToolTip.vue";
+const emit = defineEmits(['setMenuItem'])
 const isOpen = ref(false);
 onMounted(() => {
   window.addEventListener("click", () => {
@@ -50,15 +51,31 @@ const {
   "disabled",
 ]);
 const selectedIndex = ref(null);
+const selectedElement = ref(null)
+const ulMenu = ref(null)
 function showMenu() {
   isOpen.value = true;
+  var dropdownPosition = selectedElement.value?.getBoundingClientRect();
+  if (ulMenu.value) {
+    if (menuLocation === "left") {
+    ulMenu.value.style.bottom = 'auto'
+    ulMenu.value.style.top = dropdownPosition.y  + selectedElement.value.offsetHeight + 'px' ;
+    }
+    else{
+      ulMenu.value.style.left = dropdownPosition.x  +  'px';
+      ulMenu.value.style.top = dropdownPosition.y  + selectedElement.value.offsetHeight + 'px' ;
+    }
+  }
+  // ulMenu.value.style.width = dropdownPosition.width + dropdownPosition.width +'%' +  'px';
 }
-function selectItem(index) {
-  selectedIndex.value = index;
+function selectItem(id) {
+  // إذا كان القائمة في الزر تكون selected مع checkmark فك التعليق في الاسفل 
+  // selectedIndex.value = id;
+  emit('setMenuItem', id)
 }
 </script>
 <template>
-  <div class="button-container">
+  <div class="button-container" ref="selectedElement">
     
     <button
       :class="[
@@ -93,13 +110,14 @@ function selectItem(index) {
     <div
       class="dropMenu button"
       :class="[menuLocation]"
+      ref="ulMenu"
       v-show="menuItems && isOpen && menu"
     >
       <Item
         v-for="(item, i) in menuItems"
         :key="i"
         :text="item.text"
-        @click="selectItem(item.id)"
+        @click.stop="selectItem(item.id)"
         :selected="item.id === selectedIndex"
         :value="item.value"
         :rightIcon="item.rightIcon || undefined"

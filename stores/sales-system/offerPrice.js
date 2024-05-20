@@ -63,7 +63,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                 else {
                     handleCodesMessage(res.code, res.data.message)
                 }
-                commonStore.GetBranches()
+                
             }).catch(error => {
                 console.log(error)
             }) 
@@ -83,6 +83,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                         const element = res.data.viewData.data[index];
                         commonStore.NewItems.push(element);
                         commonStore.NewItems[index].name = element.itemName
+                        commonStore.NewItems[index].taxValue = element.taxValue;
 
                     }
                 }
@@ -110,6 +111,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                         commonStore.NewItems[index].name = element.itemName;
                         commonStore.NewItems[index].unitPriceList = [];
                         commonStore.ItemDetails.splice(index, 1, {
+                            currentTaxValue: element.currentTaxRate,
                             nonServiceData: {
                                 isHasAvailableAlternatives: element.isItemHasAvailableAccessories,
                                 units: [
@@ -141,6 +143,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                     await commonStore.GetBranchDataForOfferPrice(commonStore.GeneralFields.branchGUN, commonStore.GeneralFields.isCash);
                     commonStore.GeneralFields.no = res.data.viewData.no;
                     commonStore.IncreaseItem();
+                    commonStore.GetBranches()
                 }
                 else {
                     handleCodesMessage(res.code, res.data.viewMessage)
@@ -152,6 +155,62 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             console.log(error)
         }
         
+    }
+    async function GetDuplicateOffPriceInvoice(invoiceId) {
+        commonStore.NewItems = []
+        await useServerFetch(`/offerPrice/specific-data-for-doc-duplication`, {
+            params: {id: invoiceId}
+        }).then(async res => {
+            if (res.code === '200') {
+                commonStore.SetViewGeneralData(res.data.viewData, true);
+                for (let index = 0; index < res.data.viewData.items.length; index++) {
+                    const element = res.data.viewData.items[index];
+                    commonStore.NewItems.push(element);
+                    commonStore.NewItems[index].name = element.itemName;
+                    commonStore.NewItems[index].unitPriceList = [];
+                    
+                    commonStore.ItemDetails.splice(index, 1, {
+                        currentTaxValue: element.currentTaxRate,
+                        nonServiceData: {
+                            isHasAvailableAlternatives: element.isItemHasAvailableAccessories,
+                            units: [
+                                {
+                                    gun: element.unitGUN,
+                                    name: element.unitName,
+                                }
+                            ],
+                            warehouses: [
+                                {
+                                    gun: element.warehouseGUN,
+                                    name: element.warehouseName,
+                                    code: element.warehouseCode,
+                                    isSuspend: element.isWarehouseSuspend
+                                }
+                            ]
+                        }
+                        
+                    })
+                    commonStore.NewItems[index].unitPriceList = [
+                        { id: 1, price: element.currentSellingPrice },
+                        { id: 2, price: element.currentLowestPrice },
+                        { id: 3, price: element.currentWholesalePrice },
+                        { id: 4, price: element.currentCostPrice },
+                    ];
+
+                }
+                
+                
+                await commonStore.GetBranchDataForOfferPrice(commonStore.GeneralFields.branchGUN, commonStore.GeneralFields.isCash);
+                commonStore.GeneralFields.no = res.data.viewData.newNo; 
+                commonStore.IncreaseItem();
+                commonStore.GetBranches()
+            }
+            else {
+                handleCodesMessage(res.code, res.data.viewMessage)
+            }
+        }).catch(error => {
+            console.log(error)
+        }) 
     }
     async function EditOfferPriceInvoice(invoiceId) {
         await RemoveUnnessaceryFields();
@@ -289,6 +348,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
         GetOfferPriceInvoiceItemsById,
         DeleteOfferPriceInvoice,
         GetOfferPriceInvoiceEditById,
+        GetDuplicateOffPriceInvoice,
         EditOfferPriceInvoice
     }
 })

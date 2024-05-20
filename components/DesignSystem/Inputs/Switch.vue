@@ -3,11 +3,12 @@ import { ref, onMounted } from "vue";
 import ToolTip from "../Generals/ToolTip.vue";
 import Info from "~/components/Icons/Info.vue";
 const emit = defineEmits(['changeSwitch'])
-const { label, trueText, falseText, labelIcon } = defineProps([
+const props = defineProps([
   "label",
   "trueText",
   "falseText",
   "labelIcon",
+  "value"
 ]);
 const input = defineModel("input");
 const trueSide = ref(true);
@@ -27,16 +28,19 @@ function clearStatus() {
   trueSide.value = false;
   falseSide.value = false;
 }
+watch(input,(newValue) => {
+  toggle(newValue)
+})
 </script>
 <template>
   <div class="switch-container">
     <label class="row">
       <span>
-        {{ label }}
+        {{ props.label }}
       </span>
       <div class="icon">
         <ToolTip :position="'bottom'" :text="'0 = نقدي \n 1 = اجل'"
-          ><component :is="labelIcon"
+          ><component :is="props.labelIcon"
         /></ToolTip>
       </div>
     </label>
@@ -45,13 +49,13 @@ function clearStatus() {
         class="trueSide"
         :class="[{ active: trueSide }]"
         @click="!trueSide ? toggle(true): ''"
-        >{{ trueText }}</span
+        >{{ props.trueText }}</span
       >
       <span
         class="falseSide"
         :class="[{ active: falseSide }]"
         @click="!falseSide ? toggle(false) : ''"
-        >{{ falseText }}</span
+        >{{ props.falseText }}</span
       >
     </div>
   </div>
