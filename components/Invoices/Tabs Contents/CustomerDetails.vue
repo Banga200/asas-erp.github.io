@@ -59,10 +59,10 @@ function hasDiscount(customerID, index) {
     </div>
     <div class="grid-2 gap-6">
       <div>
-        <TextBox :label="'الرقم الضريبي'" v-model:input="Customer.tin" :type="'number'" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'الرقم الضريبي'" v-model:input="Customer.tin" :type="'number'" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div>
-        <TextBox :label="'رقم الجوال '" v-model:input="Customer.mobile" :type="'number'" :readOnly="Customer.gun || Customer.no? true : false"/>
+        <TextBox :label="'رقم الجوال '" v-model:input="Customer.mobile" :type="'number'" :readOnly="Customer.gun || Customer.name || Customer.no? true : false"/>
       </div>
     </div>
     <div class="grid-2 gap-6">

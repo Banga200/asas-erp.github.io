@@ -46,7 +46,7 @@ export default defineNuxtConfig({
   },
   router: {
     options: {
-      hashMode: true
+      hashMode: true // فعله في حالة Desktop
     }
   },
   vite: {

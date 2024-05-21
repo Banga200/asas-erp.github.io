@@ -68,10 +68,10 @@ function showMenu() {
   }
   // ulMenu.value.style.width = dropdownPosition.width + dropdownPosition.width +'%' +  'px';
 }
-function selectItem(id) {
+function selectItem(id, item, index) {
   // إذا كان القائمة في الزر تكون selected مع checkmark فك التعليق في الاسفل 
   // selectedIndex.value = id;
-  emit('setMenuItem', id)
+  emit('setMenuItem', id, item, index)
 }
 </script>
 <template>
@@ -117,7 +117,7 @@ function selectItem(id) {
         v-for="(item, i) in menuItems"
         :key="i"
         :text="item.text"
-        @click.stop="selectItem(item.id)"
+        @click.stop="selectItem(item.id, item?.itemId, item.index)"
         :selected="item.id === selectedIndex"
         :value="item.value"
         :rightIcon="item.rightIcon || undefined"

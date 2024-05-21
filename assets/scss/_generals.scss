@@ -704,7 +704,9 @@
                 color: $primary-800;
             }
         }
-
+        .no_wrap_text {
+            max-width: 152px;
+        }
     }
 }
 

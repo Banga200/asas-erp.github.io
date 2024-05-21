@@ -20,7 +20,8 @@ const props = defineProps([
   "index",
   "selectedFirst",
   'noRepeat',
-  "secondaryTitle"
+  "secondaryTitle",
+  "buttonMenu"
 ]);
 onMounted(() => {
   let items = document.querySelectorAll(".tree li .item-row");
@@ -52,8 +53,8 @@ function onItemhover() {
 function onItemLeave() {
   showIcon.value = false
 }
-function setMenuItem(id) {
-  emit('setMenuItem', id)
+function setMenuItem(id,item, index) {
+  emit('setMenuItem', id,item, index)
 }
 </script>
 <template>
@@ -80,12 +81,7 @@ function setMenuItem(id) {
 
         <!-- Left Icon -->
         <Transition appear name="fade">
-          <Button :size="'xx-small'"  :color="'neutral-200'"  :onlyIcon="true" :icon="props.leftIcon"  v-if="showIcon" :menuItems="[
-            {
-            id: 1,
-            text:'تكرار الفاتورة'
-          }
-          ]" :menu="true" :menuLocation="'left'" @setMenuItem="setMenuItem"/>
+          <Button :size="'xx-small'"  :color="'neutral-200'"  :onlyIcon="true" :icon="props.leftIcon"  v-if="showIcon" :menuItems="buttonMenu" :menu="true" :menuLocation="'left'" @setMenuItem="setMenuItem"/>
             <!-- <component :is="props.leftIcon" /> -->
         </Transition>
       </div>

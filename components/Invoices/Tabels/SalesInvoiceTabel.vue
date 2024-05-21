@@ -339,7 +339,28 @@ function getUnitsAndWarehouse(index) {
     }
   }
 }
-
+function handleItemOptions(id,itemId,index){
+  switch(id) {
+    case 1:
+      // كرت الصنف 
+      break;
+    case 2:
+      // الاصناف الملحقة
+      handleKeyPressF6(index)
+      break;
+    case 3:
+      // الاصناف البديلة
+      handleKeyPressF5(index)
+      break;
+    case 4:
+      // بحث متقدم
+      break;
+    case 5:
+      // حذف
+      removeItem(index)
+      break;
+  }
+}
 </script>
 <template>
   <table>
@@ -382,6 +403,7 @@ function getUnitsAndWarehouse(index) {
               :menuLocation="'left'"
               :icon="MoreDotsVertical"
               :size="'md'"
+              @setMenuItem="handleItemOptions"
               :menu="true"
               :menuItems="[
                 {
@@ -389,6 +411,7 @@ function getUnitsAndWarehouse(index) {
                   text: 'كرت الصنف',
                   rightIcon: Statment,
                   value: '(F1)',
+                  index: i,
                   disable: false,
                 },
                 {
@@ -396,6 +419,7 @@ function getUnitsAndWarehouse(index) {
                   text: 'الأصناف الملحقة',
                   rightIcon: Insert,
                   value: '(F6)',
+                  index: i,
                   disabled:
                     !ItemDetails[i]?.nonServiceData?.isHasAvailableAccessories,
                 },
@@ -404,6 +428,7 @@ function getUnitsAndWarehouse(index) {
                   text: 'الأصناف البديلة',
                   rightIcon: Convert,
                   value: '(F5)',
+                  index: i,
                   disabled:
                     !ItemDetails[i]?.nonServiceData?.isHasAvailableAlternatives,
                 },
@@ -412,6 +437,7 @@ function getUnitsAndWarehouse(index) {
                   text: 'بحث متقدم',
                   rightIcon: Search,
                   value: '(Enter)',
+                  index: i,
                   disabled: false,
                 },
                 {

@@ -43,7 +43,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             console.log(error)
         }
     }
-    async function GetOfferPriceInvoices(search = '', branchId= '', pageNumber = 1) {
+    async function GetOfferPriceInvoices(search = '', branchId= '', pageNumber = 1, onlyInvoices) {
         try {
             await useServerFetch(`/offerPrice/specific-view-data-without-details/${pageNumber}`, {
                params: {
@@ -54,7 +54,9 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                 if (res.code === '200') {
                     commonStore.InvoicesTree = res.data.viewData;
                     commonStore.SetViewGeneralData(res.data.viewData.data[0]);
-                    GetOfferPriceInvoiceItemsById(res.data.viewData.data[0].gun);
+                    if (!onlyInvoices) {
+                        GetOfferPriceInvoiceItemsById(res.data.viewData.data[0].gun);
+                    } 
                 }
                 else if (res.code === '204') {
                     commonStore.InvoicesTree = [];

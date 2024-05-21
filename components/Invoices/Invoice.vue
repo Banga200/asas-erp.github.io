@@ -68,6 +68,7 @@ const isEdit = ref(false);
 const treeDisabled = ref(false);
 const contentDisabled = ref(true);
 const tableDisabled = ref(true);
+const invoiceIdTemp = ref(null);
 const validation = ref({
   customer: false,
   item: false,
@@ -153,16 +154,20 @@ const footerTabs = shallowRef({
   PayWays,
 });
 const isNew = ref(true);
-
+const childTree = ref(null);
 onMounted(async () => {
   GeneralFields.value.date = date.toISOString().substring(0, 10);
   GeneralFields.value.time = date.toTimeString().split(" ")[0];
   handleDateTime();
   if (OfferPrice) {
-    await OfferPriceStore.GetOfferPriceInvoices();
+    await OfferPriceStore.GetOfferPriceInvoices('','',1, true);
   } else if (ReturnInvoice) {
   } else if (SalesInvoice) {
   } else if (Booked) {
+  }
+  let invoice = JSON.parse(localStorage.getItem("invoice"));
+  if (invoice) {
+    childTree.value.setButtonMenuItem(invoice.id, invoice.itemId, invoice.index)
   }
 });
 onUpdated(() => {
@@ -185,7 +190,7 @@ async function AddNewInvoice() {
     if (Permissions.value?.canAdd) {
       commonStore.ClearEverythings();
       isNew.value = false;
-      treeDisabled.value = true;
+      treeDisabled.value = false;
       tableDisabled.value = false;
       contentDisabled.value = false;
       // branchSelected.value = true;
@@ -360,7 +365,6 @@ function CheckNoneSaleItems() {
       element.forSale = true;
     }
   }
-  console.log(Items.value)
 }
 // اذا صنف ليس للبيع يتم حذفه بعد الضغط على زر "حذف الكل"
 function handleDeleteNoneSaleItems() {
@@ -760,10 +764,12 @@ function handleSaleman(saleman) {
 
 async function deleteInvoice() {
   deleteDialog.value = false;
-  let invoiceId = GeneralFields.value.gun;
+  let invoiceId = invoiceIdTemp.value ? invoiceIdTemp.value : GeneralFields.value.gun;
   await OfferPriceStore.DeleteOfferPriceInvoice(invoiceId);
+  invoiceIdTemp.value = null;
 }
 function refresh() {
+  cancel()
   if (OfferPrice) {
     OfferPriceStore.GetOfferPriceInvoices();
   } else if (ReturnInvoice) {
@@ -778,7 +784,7 @@ async function editInvoice() {
   let invoiceId = GeneralFields.value.gun;
 
   if (isEdit.value) {
-    treeDisabled.value = true;
+    treeDisabled.value = false;
     await OfferPriceStore.GetOfferPriceInvoiceEditById(invoiceId);
     GeneralFields.value.date = date.toISOString().substring(0, 10);
     GeneralFields.value.time = date.toTimeString().split(" ")[0];
@@ -799,11 +805,28 @@ function clearDisabled() {
   tableDisabled.value = false;
 }
 function handleTreeOptions(optionId) {
-  // 1 === تكرار الفاتورة
+  // 1 === عرض فاتورة
+  clearDisabled();
   if (optionId === 1) {
-    isNew.value = false;
-    treeDisabled.value = true;
+    isNew.value = true;
+    contentDisabled.value = true
+    tableDisabled.value = true
   }
+  // 2 === تعديل الفاتورة
+  if (optionId === 2) {
+    isEdit.value = true;
+    treeDisabled.value = false
+  }
+  // 3 === تكرار الفاتورة
+  if (optionId === 3) {
+    isNew.value = false;
+    treeDisabled.value = false;
+  }
+  
+}
+function deleteFromChild(invoiceId) {
+  deleteDialog.value = true
+  invoiceIdTemp.value = invoiceId
 }
 </script>
 <template>
@@ -818,6 +841,9 @@ function handleTreeOptions(optionId) {
         :Booked="Booked"
         :ReturnInvoice="ReturnInvoice"
         @clearDisabled="clearDisabled"
+        @deleteInvoice="deleteFromChild"
+        :isNewOrEdit="!isNew || isEdit"
+        ref="childTree"
       />
     </div>
     <!-- Content  -->
@@ -889,7 +915,7 @@ function handleTreeOptions(optionId) {
         <!-- left side  -->
         <div class="d-flex align-center gap-6">
           <!-- Avatars  -->
-          <div class="avatar-group high_index" v-if="!SalesInvoice && isEdit">
+          <div class="avatar-group high_index" v-if="!SalesInvoice && isEdit || isNew">
             <Popover :isHover="true" :position="'bottom-right'">
               <Avatar :icon="User" :borderColor="'warning'" :size="'md'" />
               <template v-slot:content>
@@ -929,7 +955,7 @@ function handleTreeOptions(optionId) {
             :text="'حفظ'"
             :rightIcon="Save"
             @click.capture="saveInvoice"
-           v-if="!isNew"/>
+           v-if="!isNew || isEdit"/>
         </div>
       </section>
       <!-- Details  -->

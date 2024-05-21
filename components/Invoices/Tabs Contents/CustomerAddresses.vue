@@ -10,41 +10,41 @@ const {Customer} = storeToRefs(commonStore)
   <div class="flex-column gap-6 pl-8 pr-8">
     <div class="grid-4 gap-4">
       <div >
-        <TextBox :label="'البلد'" v-model:input="Customer.country" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'البلد'" v-model:input="Customer.country" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div>
-        <TextBox :label="'المنطقة'" v-model:input="Customer.area" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'المنطقة'" v-model:input="Customer.area" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div>
-        <TextBox :label="'المدينة'" v-model:input="Customer.city" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'المدينة'" v-model:input="Customer.city" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div>
-        <TextBox :label="'الحي'" v-model:input="Customer.neighborhood" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'الحي'" v-model:input="Customer.neighborhood" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
     </div>
     <div class="grid-3 gap-4 ">
       <div >
-        <TextBox :label="'الشارع الرئيسي'" v-model:input="Customer.street" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'الشارع الرئيسي'" v-model:input="Customer.street" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div >
-        <TextBox :label="'رقم المبنى'" v-model:input="Customer.buildingNo" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'رقم المبنى'" v-model:input="Customer.buildingNo" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div>
-        <TextBox :label="'الرمز البريدي'"  v-model:input="Customer.postelCode" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'الرمز البريدي'"  v-model:input="Customer.postelCode" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
     </div>
     <div class="grid-3 gap-4 ">
       <div >
-        <TextBox :label="'الرمز الاضافي'" v-model:input="Customer.additionalCode" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'الرمز الاضافي'" v-model:input="Customer.additionalCode" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div >
-        <TextBox :label="'ص.ب'" v-model:input="Customer.poBox" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'ص.ب'" v-model:input="Customer.poBox" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div >
-        <TextBox :label="'الهاتف الثابت'" v-model:input="Customer.phone" :type="'number'" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'الهاتف الثابت'" v-model:input="Customer.phone" :type="'number'" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
       <div >
-        <TextBox :label="'الفاكس'" v-model:input="Customer.fax" :type="'number'" :readOnly="Customer.gun || Customer.no ? true : false"/>
+        <TextBox :label="'الفاكس'" v-model:input="Customer.fax" :type="'number'" :readOnly="Customer.gun || Customer.name || Customer.no ? true : false"/>
       </div>
     </div>
   </div>
