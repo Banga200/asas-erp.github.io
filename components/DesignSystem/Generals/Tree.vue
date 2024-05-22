@@ -81,7 +81,7 @@ function setMenuItem(id,item, index) {
 
         <!-- Left Icon -->
         <Transition appear name="fade">
-          <Button :size="'xx-small'"  :color="'neutral-200'"  :onlyIcon="true" :icon="props.leftIcon"  v-if="showIcon" :menuItems="buttonMenu" :menu="true" :menuLocation="'left'" @setMenuItem="setMenuItem"/>
+          <Button :size="'xx-small'"  :color="'neutral-200'"  :onlyIcon="true" :icon="props.leftIcon"  v-show="showIcon" :menuItems="buttonMenu" :menu="true" :menuLocation="'left'" @setMenuItem="setMenuItem"/>
             <!-- <component :is="props.leftIcon" /> -->
         </Transition>
       </div>

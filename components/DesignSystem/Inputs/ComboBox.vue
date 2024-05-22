@@ -158,12 +158,12 @@ function unfocus() {
   }, 100);
 }
 function focus() {
-  isOpen.value = true;
+  
   var dropdownPosition = inputElement.value.getBoundingClientRect();
   ulMenu.value.style.left = dropdownPosition.x - 22 +  'px';
   ulMenu.value.style.top = dropdownPosition.y + 1 + inputElement.value.offsetHeight + 'px' ;
   ulMenu.value.style.width = dropdownPosition.width + 20 +  'px';
-  
+  isOpen.value = true;
 }
 function openAdvanceSearch() {
   if (!input.value) {
@@ -188,14 +188,17 @@ function handleKeydown(event) {
 
     if (event.key === "ArrowDown") {
       focusedIndex.value = (focusedIndex.value + 1) % props.items.length;
+      ulMenu.scrollTop += ulMenu.offsetHeight / 5;
       // stickScroll(focusedIndex.value)
     } else {
       focusedIndex.value =
         (focusedIndex.value - 1 + props.items.length) % props.items.length;
+        ulMenu.value.scrollTop -= ulMenu.offsetHeight / 5;
         // stickScroll(focusedIndex.value)
        
     }
-  } else if (event.key === "Enter") {
+  }
+   else if (event.key === "Enter") {
     if (
       props.items[focusedIndex.value]?.[props.displayTitle] &&  
       props.items[focusedIndex.value]?.[props.returnValue]
@@ -241,7 +244,7 @@ function handleLinkKeydown(index) {
         { disabled: disabled },
         { readonly: readOnly },
       ]"
-      @click.stop="isOpen = !isOpen"
+      @click.stop="focus"
     >
       <input
         @keydown.exact="handleKeydown"
@@ -309,9 +312,7 @@ function handleLinkKeydown(index) {
           "
           :leftInnerIconToolTipPosition="'bottom-right'"
           :selected="item[props.returnValue] === selectedItem"
-          @click.stop="
-            setItem(item[props.displayTitle], item[props.returnValue])
-          "
+          
           @keydown.prevent="handleLinkKeydown(index)"
           :class="{
             focus:
@@ -341,7 +342,7 @@ function handleLinkKeydown(index) {
             :key="item[props.returnValue]"
             :text="item[props.displayTitle]"
             :selected="item[props.returnValue] === selectedItem"
-            @click.stop="setItem(item[props.displayTitle], item[returnValue])"
+           
             @keydown.prevent="handleLinkKeydown(index)"
             @mousedown.stop="
               setItem(item[props.displayTitle], item[props.returnValue])

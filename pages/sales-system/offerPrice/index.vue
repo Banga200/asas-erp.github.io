@@ -10,7 +10,7 @@ definePageMeta({
   DocOrder: 6
 })
 useHead({
-  title: "عرض سعر"
+  title: "عرض سعر",
 })
 onUnmounted(() => {
   commonStore.ClearEverythings();

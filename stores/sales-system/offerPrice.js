@@ -80,11 +80,11 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             await useServerFetch(`/offerPrice/${offerPriceID}/specific-view-data-of-items/${pageNumber}`, {
             }).then(res => {
                 if (res.code === '200') {
-                    
                     for (let index = 0; index < res.data.viewData.data.length; index++) {
                         const element = res.data.viewData.data[index];
                         commonStore.NewItems.push(element);
                         commonStore.NewItems[index].name = element.itemName
+                        commonStore.NewItems[index].warehouseName = element.warehouseCode
                         commonStore.NewItems[index].taxValue = element.taxValue;
 
                     }

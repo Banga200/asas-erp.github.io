@@ -69,6 +69,7 @@ const treeDisabled = ref(false);
 const contentDisabled = ref(true);
 const tableDisabled = ref(true);
 const invoiceIdTemp = ref(null);
+const isCustomerDiscount = ref(false)
 const validation = ref({
   customer: false,
   item: false,
@@ -155,19 +156,34 @@ const footerTabs = shallowRef({
 });
 const isNew = ref(true);
 const childTree = ref(null);
+const canView = ref(true)
 onMounted(async () => {
+  if (!Permissions.value?.canView) {
+    canView.value = false
+  }
+  
+  let invoice = JSON.parse(localStorage.getItem("invoice"));
   GeneralFields.value.date = date.toISOString().substring(0, 10);
-  GeneralFields.value.time = date.toTimeString().split(" ")[0];
+    GeneralFields.value.time = date.toTimeString().split(" ")[0];
+  if (invoice) {
+    
+    handleDateTime();
+    if (OfferPrice) {
+      await OfferPriceStore.GetOfferPriceInvoices('','',1, true);
+    } else if (ReturnInvoice) {
+    } else if (SalesInvoice) {
+    } else if (Booked) {
+    }
+    childTree.value.setButtonMenuItem(invoice.id, invoice.itemId, invoice.index)
+  }
+  else{
   handleDateTime();
   if (OfferPrice) {
-    await OfferPriceStore.GetOfferPriceInvoices('','',1, true);
+    await OfferPriceStore.GetOfferPriceInvoices('','',1, false);
   } else if (ReturnInvoice) {
   } else if (SalesInvoice) {
   } else if (Booked) {
   }
-  let invoice = JSON.parse(localStorage.getItem("invoice"));
-  if (invoice) {
-    childTree.value.setButtonMenuItem(invoice.id, invoice.itemId, invoice.index)
   }
 });
 onUpdated(() => {
@@ -236,14 +252,17 @@ function cancel() {
     taxValue: 0,
     invoiceValue: 0,
   };
+  CustomerDiscount.value = 0
   isNew.value = true;
   GeneralFields.value.isCash = true;
   OfferPriceStore.GetOfferPriceInvoices();
   let items = document.querySelectorAll(".tree li .item-row");
-  items.forEach((item) => {
+  if (items.length > 0) {
+    items.forEach((item) => {
     item.classList.remove("selected");
   });
   items[0].classList.add("selected");
+  }
 }
 // إذا كان فيه حسم لدى العميل يتم إظهار تنبيه
 const salemanIndex = ref(null);
@@ -511,6 +530,7 @@ function calculateInvoiceFooter() {
 }
 function handleDiscount(discount) {
   discount = discount ? discount : footerDetails.value.discount;
+  
   if (typeof discount === "string" && discount) {
     if (discount.includes("%")) {
       discount = parseInt(discount.split("%")[0]);
@@ -525,7 +545,7 @@ function handleDiscount(discount) {
       //     NewItems.value[index].price
       //   )?.toFixed(2)
       // );
-      setDiscountToAllItems(footerFields.value.discount);
+      setDiscountToAllItems(discount);
     } else {
       //  useHandleDiscount(
       //   parseInt(discount),
@@ -533,12 +553,12 @@ function handleDiscount(discount) {
       //   footerFields.value.total, // المجموع الكلي للفاتورة قبل الخصم والضريبة
       //   NewItems.value[index].price
       // );
-      console.log(discount);
-      setDiscountToAllItems(footerFields.value.discount);
+      setDiscountToAllItems(discount);
     }
   } else {
     if (discount > 0) {
       setDiscountToAllItems(discount);
+      return;
     }
     setDiscountToAllItems(0);
   }
@@ -546,25 +566,23 @@ function handleDiscount(discount) {
 const calculatingNet = false;
 function setDiscountToAllItems(discount) {
   // تخزين قيمة مجموع الحسم
-
-  GeneralFields.value.totalDiscount = discount;
-  discount = parseInt(discount);
   if (discount > 0) {
-    let discountDivided = parseFloat(
-      discount / (NewItems.value.length - 1).toFixed(2)
-    );
-
-    for (let index = 0; index < NewItems.value.length - 1; index++) {
-      const element = NewItems.value[index];
-
-      element.discount = useHandleDiscount(
+    isCustomerDiscount.value = true;
+    
+    let discountDivided = parseFloat(discount / (NewItems.value.length - 1))
+    let updatedItems = [...NewItems.value];
+    for (let index = 0; index < updatedItems.length - 1; index++) {
+      const element = updatedItems[index];
+      let result = toDouble(useHandleDiscount(
         discountDivided,
         element.quantity,
         element.total,
         element.price
-      );
-      element.net = element.total - element.discount + element.taxValue;
+      ));
+      updatedItems[index].discount = result || 0;
+      // element.net = element.total - element.discount + element.taxValue;
     }
+    NewItems.value = updatedItems;
   }
 }
 
@@ -778,26 +796,32 @@ function refresh() {
   }
 }
 async function editInvoice() {
-  isEdit.value = !isEdit.value;
-  tableDisabled.value = false;
-  contentDisabled.value = false;
-  let invoiceId = GeneralFields.value.gun;
-
-  if (isEdit.value) {
+  
+  if(Permissions.value?.canEdit){
+    isEdit.value = !isEdit.value;
+    tableDisabled.value = false;
+    contentDisabled.value = false;
+    let invoiceId = GeneralFields.value.gun;
+    if (isEdit.value) {
     treeDisabled.value = false;
     await OfferPriceStore.GetOfferPriceInvoiceEditById(invoiceId);
     GeneralFields.value.date = date.toISOString().substring(0, 10);
     GeneralFields.value.time = date.toTimeString().split(" ")[0];
     handleDateTime();
-  } else {
-    treeDisabled.value = false;
-    contentDisabled.value = true;
-    tableDisabled.value = true;
-    NewItems.value.splice(NewItems.value.length - 1, 1);
-    await OfferPriceStore.GetOfferPriceInvoiceItemsById(invoiceId);
-    tableDisabled.value = true;
-    contentDisabled.value = true;
+    } else {
+      treeDisabled.value = false;
+      contentDisabled.value = true;
+      tableDisabled.value = true;
+      NewItems.value.splice(NewItems.value.length - 1, 1);
+      await OfferPriceStore.GetOfferPriceInvoiceItemsById(invoiceId);
+      tableDisabled.value = true;
+      contentDisabled.value = true;
+    }
   }
+  else {
+    errorHandle("ليس لديك صلاحية التعديل")
+  }
+  
 }
 function clearDisabled() {
   treeDisabled.value = false;
@@ -832,7 +856,7 @@ function deleteFromChild(invoiceId) {
 <template>
   <div class="row">
     <!-- Tree  -->
-    <div class="right-side-tree col-12 col-md-2">
+    <div class="right-side-tree col-12 col-md-2" v-if="canView">
       <div class="disabledAll" v-if="treeDisabled"></div>
       <InvoicesTree
         @setTreeOption="handleTreeOptions"
@@ -847,7 +871,7 @@ function deleteFromChild(invoiceId) {
       />
     </div>
     <!-- Content  -->
-    <div class="content border-right col-12 col-md-10">
+    <div class="content border-right col-12 col-md-10" :class="{'col-md-12': !canView}">
       <!-- Buttons  -->
       <section class="top-buttons row">
         <!-- right side  -->
@@ -881,7 +905,7 @@ function deleteFromChild(invoiceId) {
             :color="'danger'"
             :onlyIcon="true"
             :icon="Delete"
-            @click.capture="deleteDialog = true"
+            @click.capture="Permissions.canDelete ? deleteDialog = true : errorHandle('ليس لديك صلاحية الحذف')"
             :class="{ high_index: isNew }"
             v-if="isNew && !isEdit"
           />
@@ -1157,7 +1181,7 @@ function deleteFromChild(invoiceId) {
           @recalculateTotalDiscount="setDiscountToAllItems"
           @clearValidation="() => (validation.item = false)"
           @calculate="calculateInvoiceFooter"
-        />
+          :discountFromParent="isCustomerDiscount"/>
       </section>
       <!-- Footer Details  -->
       <section class="invoice-footer">

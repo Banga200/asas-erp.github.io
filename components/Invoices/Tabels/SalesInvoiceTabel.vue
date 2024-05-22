@@ -20,7 +20,7 @@ import { useRoute } from "vue-router";
 import { isNumber } from "~/node_modules/@intlify/shared/dist/shared";
 const route = useRoute();
 const dialog = ref(false);
-const props = defineProps(["recalculate", "itemValidation", "isEdit"]);
+const props = defineProps(["recalculate", "itemValidation", "isEdit", "discountFromParent"]);
 const emit = defineEmits([
   "setInvoiceFooter",
   "restRecalculate",
@@ -166,27 +166,29 @@ function handlePrice(price, index) {
  
 }
 function handleDiscount(discount, index) {
-  if (typeof discount === "string" && discount) {
+  if (!props.discountFromParent) {
+    if (typeof discount === "string" && discount) {
     if (discount.includes("%")) {
       discount = discount.split("%")[0];
-      discount = isNumber(discount) ? (parseFloat(discount.toFixed(2)) / 100) * NewItems.value[index].total : 0;
-      NewItems.value[index].discount = useHandleDiscount(
+      discount = isNumber(parseInt(discount)) ? (parseFloat(discount) / 100) * NewItems.value[index].total : 0;
+      console.log(discount)
+      NewItems.value[index].discount = toDouble(useHandleDiscount(
         discount,
         NewItems.value[index].quantity,
         NewItems.value[index].total,
         NewItems.value[index].price
-      );
+      ))
 
       setNet(index);
     } else {
       const isNumber = isNaN(parseInt(discount)) ? false : true;
       if (isNumber) {
-        NewItems.value[index].discount = useHandleDiscount(
-          discount,
-          NewItems.value[index].quantity,
-          NewItems.value[index].total,
-          NewItems.value[index].price
-        );
+        NewItems.value[index].discount = toDouble(useHandleDiscount(
+        discount,
+        NewItems.value[index].quantity,
+        NewItems.value[index].total,
+        NewItems.value[index].price
+      ))
         setNet(index);
       } else {
         NewItems.value[index].discount = "";
@@ -195,6 +197,8 @@ function handleDiscount(discount, index) {
     }
     handleTax(index)
   }
+  }
+  
 }
 function setTotal(index) {
   if (props.recalculate) {
@@ -210,8 +214,8 @@ function setTotal(index) {
     NewItems.value[index].total =
       NewItems.value[index].price * NewItems.value[index].quantity;
 
-    handleDiscount(NewItems.value[index].discount, index);
-    handleTax(index);
+    // handleDiscount(NewItems.value[index].discount, index);
+    // handleTax(index);
 
     setNet(index);
   }
@@ -230,10 +234,10 @@ function handleTax(index) {
   // setNet(index);
 }
 function setNet(index) {
-  NewItems.value[index].net =
-    NewItems.value[index].total -
+  NewItems.value[index].net = toDouble(NewItems.value[index].total -
     NewItems.value[index].discount +
-    NewItems.value[index].taxValue;
+    NewItems.value[index].taxValue)
+    
     emit('calculate')
 }
 function getSelectedWarehouseIndex(warehouseID, index) {
@@ -512,7 +516,7 @@ function handleItemOptions(id,itemId,index){
             :items="ItemDetails[i]?.nonServiceData?.warehouses || []"
             @setItem="handleWarehouse"
             :selectFirstItem="true"
-            :displayTitle="'name'"
+            :displayTitle="'code'"
             :returnValue="'gun'"
             :placeholder="'المستودع'"
             :disabled="ItemDetails[i]?.type === 2"

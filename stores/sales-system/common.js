@@ -186,7 +186,6 @@ export const useCommonStore = defineStore("common", () => {
     } catch (error) {}
   }
   async function GetItemBaseOnBranch(itemsIds) {
-    console.log(itemsIds)
     try {
       await useServerFetch(`item/item-data-of-changing-branch-of-offer-price`, 
       {
@@ -370,7 +369,7 @@ export const useCommonStore = defineStore("common", () => {
     return {
       name: data.itemName,
       unitName: data.unitName,
-      warehouseName: data.warehouseName,
+      warehouseName: data.warehouseCode,
       forSale: null,
       itemGUN: data.itemGUN,
       warehouseGUN: data.warehouseGUN,
@@ -419,7 +418,6 @@ export const useCommonStore = defineStore("common", () => {
     }
   }
   function setPriceList(unit, index) {
-    console.log(unit, index)
     NewItems.value[index].unitPriceList[0].price = unit.sellingPrice;
     NewItems.value[index].unitPriceList[1].price = unit.lowestPrice;
     NewItems.value[index].unitPriceList[2].price = unit.wholesalePrice;

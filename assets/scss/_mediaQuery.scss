@@ -271,6 +271,9 @@
   .container {
     max-width: 1140px;
   }
+  table tbody tr td.item-column  {
+    min-width: 294px !important;
+  }
   // .overlay.fixed .model {
   //   width: 644px;
   // }
@@ -354,7 +357,16 @@
   }
 }
 
-
+@media(min-width: 1365px) {
+  table tbody tr td.item-column  {
+    min-width: 325px !important;
+  }
+}
+@media(min-width: 1919px) {
+  table tbody tr td.item-column  {
+    min-width: 510px !important;
+  }
+}
 // height 
 
 
