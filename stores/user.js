@@ -117,12 +117,22 @@ export const useUserStore = defineStore("user", () => {
 
     const expireTokenDate = new Date(item.expire)
     const expiryInMilliseconds = expireTokenDate.getTime() ;
-    
     const now = new Date();
-    console.log(now.toUTCString() , item.expire)
-    if (now.getTime() > expiryInMilliseconds) {
+   
+    const newDate = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours() + 3 ,
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMilliseconds()
+    ))
+      
+    if (newDate.getTime() > expiryInMilliseconds) {
       localStorage.removeItem(key);
       localStorage.removeItem('user');
+      router.push("/login");
       return null;
     }
     return item.value;

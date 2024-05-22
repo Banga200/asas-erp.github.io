@@ -29,7 +29,7 @@ watch(() => props.show, (value) => {
 onMounted(() => {
   window.addEventListener("click", () => {
     isTooltipVisible.value = false;
-  }, true);
+  });
 });
 onUnmounted(() => {
   window.removeEventListener("click", () => {});

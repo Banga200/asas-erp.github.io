@@ -16,7 +16,7 @@ const emit = defineEmits([
   "getItemBySearch",
   "setInput",
   "setItem",
-  "clearSelected"
+  "clearSelected",
 ]);
 const input = defineModel("input");
 const valueReturn = defineModel("valueReturn");
@@ -103,7 +103,7 @@ let filterItem = computed(() => {
     if (input.value) {
       if (isOpen.value) {
         return props.items.filter((item) => {
-        return item[props.displayTitle]?.includes(input.value);
+          return item[props.displayTitle]?.includes(input.value);
         });
       }
       return props.items;
@@ -111,7 +111,6 @@ let filterItem = computed(() => {
       return props.items;
     }
   }
-  
 });
 function observeTrigger() {
   observer = new IntersectionObserver(
@@ -129,6 +128,7 @@ function observeTrigger() {
     observer.observe(element);
   });
 }
+// أذا أختار صنف من القائمة 
 function setItem(text, value) {
   if (selectedItem.value !== value) {
     selectedItem.value = value;
@@ -140,12 +140,12 @@ function setItem(text, value) {
     inputElement.value.focus();
   }
 }
-
+// في حالة أدخل نص يدوي 
 function setInput(value) {
   emit("setInput", input.value, selectedItem.value);
   selectedItem.value = "";
   if (props.items) {
-    isOpen.value = true
+    isOpen.value = true;
   }
   if (props.isPage) {
     emit("getItemBySearch", input.value);
@@ -154,15 +154,14 @@ function setInput(value) {
 function unfocus() {
   setTimeout(() => {
     isOpen.value = false;
-    
   }, 100);
 }
 function focus() {
-  
   var dropdownPosition = inputElement.value.getBoundingClientRect();
-  ulMenu.value.style.left = dropdownPosition.x - 22 +  'px';
-  ulMenu.value.style.top = dropdownPosition.y + 1 + inputElement.value.offsetHeight + 'px' ;
-  ulMenu.value.style.width = dropdownPosition.width + 20 +  'px';
+  ulMenu.value.style.left = dropdownPosition.x - 22 + "px"; // 22 يأخذ مساحة حقل الInput بالضبط فيكون ناقص شوي فلازم تخليه قريب من العرض(width)
+  ulMenu.value.style.top = 
+    dropdownPosition.y + 1 + inputElement.value.offsetHeight + "px"; // رقم واحد عشان ينزل تحت الborder اذا حذفناه يغطي الborder bottom
+  ulMenu.value.style.width = dropdownPosition.width + 20 + "px";
   isOpen.value = true;
 }
 function openAdvanceSearch() {
@@ -177,42 +176,51 @@ function setFirstItem(item) {
   emit("setItem", item[props.returnValue], props.index);
 }
 function clearInput() {
-  input.value = ''
-  selectedItem.value = '';
-  valueReturn.value = '';
-  emit('clearSelected')
+  input.value = "";
+  selectedItem.value = "";
+  valueReturn.value = "";
+  emit("clearSelected");
 }
 function handleKeydown(event) {
   if (event.key === "ArrowDown" || event.key === "ArrowUp") {
     event.preventDefault();
 
     if (event.key === "ArrowDown") {
-      focusedIndex.value = (focusedIndex.value + 1) % props.items.length;
-      ulMenu.scrollTop += ulMenu.offsetHeight / 5;
+      focusedIndex.value = (focusedIndex.value + 1) % filterItem.value.length;
+      // ulMenu.scrollTop += ulMenu.offsetHeight / 5;
+      ulMenu.value.querySelectorAll('ul')[focusedIndex.value]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       // stickScroll(focusedIndex.value)
     } else {
       focusedIndex.value =
-        (focusedIndex.value - 1 + props.items.length) % props.items.length;
-        ulMenu.value.scrollTop -= ulMenu.offsetHeight / 5;
-        // stickScroll(focusedIndex.value)
-       
+        (focusedIndex.value - 1 + filterItem.value.length) % filterItem.value.length;
+        
+      ulMenu.value.querySelectorAll('ul')[focusedIndex.value]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // stickScroll(focusedIndex.value)
     }
-  }
-   else if (event.key === "Enter") {
+  } else if (event.key === "Enter") {
     if (
-      props.items[focusedIndex.value]?.[props.displayTitle] &&  
-      props.items[focusedIndex.value]?.[props.returnValue]
+      filterItem.value[focusedIndex.value]?.[props.displayTitle] &&
+      filterItem.value[focusedIndex.value]?.[props.returnValue]
     ) {
       setItem(
-        props.items[focusedIndex.value]?.[props.displayTitle],
-        props.items[focusedIndex.value]?.[props.returnValue]
+        filterItem.value[focusedIndex.value]?.[props.displayTitle],
+        filterItem.value[focusedIndex.value]?.[props.returnValue]
       );
-      isOpen.value = false
+      isOpen.value = false;
+    }
+    else {
+        
+        if(!selectedItem.value && focusedIndex.value === -1) {
+          setFirstItem(filterItem.value[0])
+          isOpen.value = false;
+        }
+       
+      
     }
   }
 }
 function setSelectItem(value) {
-  selectedItem.value = value
+  selectedItem.value = value;
 }
 // function stickScroll(index) {
 //   const itemElement = ulMenu.value.querySelectorAll(".item-container")[index];
@@ -291,28 +299,29 @@ function handleLinkKeydown(index) {
       :class="{ virtual: props.bigData }"
       v-show="isOpen && !disabled"
       ref="ulMenu"
-      @keydown="handleKeydown">
+      @keydown="handleKeydown"
+    >
       <div v-if="items && !bigData">
         <Item
-        tabindex="0"
-        
+          tabindex="0"
           v-for="item in filterItem"
           :key="item[props.returnValue]"
           :text="item[props.displayTitle]"
           :leftInnerIcon="
-            item[props.leftInnerIconItemText] ? props.leftInnerIconItem : undefined
+            item[props.leftInnerIconItemText]
+              ? props.leftInnerIconItem
+              : undefined
           "
           :leftInnerIconToolTip="
             item[props.leftInnerIconItemText]
               ? props.leftInnerIconToolTip
               : undefined
           "
-          @mousedown.stop="
+          @click.stop="
             setItem(item[props.displayTitle], item[props.returnValue])
           "
           :leftInnerIconToolTipPosition="'bottom-right'"
           :selected="item[props.returnValue] === selectedItem"
-          
           @keydown.prevent="handleLinkKeydown(index)"
           :class="{
             focus:
@@ -332,8 +341,7 @@ function handleLinkKeydown(index) {
       >
         <template v-slot="{ item }">
           <Item
-          tabindex="0"
-          
+            tabindex="0"
             :class="{
               focus:
                 filterItem[focusedIndex]?.[props.returnValue] ===
@@ -342,11 +350,10 @@ function handleLinkKeydown(index) {
             :key="item[props.returnValue]"
             :text="item[props.displayTitle]"
             :selected="item[props.returnValue] === selectedItem"
-           
-            @keydown.prevent="handleLinkKeydown(index)"
-            @mousedown.stop="
+            @click.stop="
               setItem(item[props.displayTitle], item[props.returnValue])
             "
+            @keydown.prevent="handleLinkKeydown(index)"
           />
         </template>
         <template v-slot:after v-if="isPage">

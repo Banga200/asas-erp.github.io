@@ -83,7 +83,7 @@ function getItemsBySearch() {
   }
   timeout = setTimeout(() => {
     salesStore.GetItems(1, input.value);
-  }, 800);
+  }, 2300);
 }
 watch(input, (newValue, oldValue) => {
   if (newValue === "") {
