@@ -4,6 +4,8 @@ import Badge from '../Generals/Badge.vue';
 import CloseIcon from '~/components/Icons/Close.vue';
 import Item from '../Generals/Item.vue';
 import {ref} from 'vue';
+import { useSettingsStore } from '~/stores/settings';
+const settingsStore = useSettingsStore();
 const input = defineModel("input");
 const emit = defineEmits(['setInput', 'changeInput']);
 const isOpen = ref(false);
@@ -45,6 +47,7 @@ const {
   leftIconToolTipPosition,
   leftInnerIconToolTip,
   leftInnerIconToolTipPosition,
+  regx
 } = defineProps([
   "label",
   "color",
@@ -73,7 +76,8 @@ const {
   'leftIconToolTip',
   'leftIconToolTipPosition',
   'leftInnerIconToolTip',
-  'leftInnerIconToolTipPosition'
+  'leftInnerIconToolTipPosition',
+  "regx"
 ]);
 
 

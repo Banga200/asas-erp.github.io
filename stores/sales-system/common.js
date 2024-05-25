@@ -226,10 +226,10 @@ export const useCommonStore = defineStore("common", () => {
             res.data.viewData.forEach((element, index) => {
               NewItems.value[index].taxValue = useHandleTax(
                 element.taxValue,
-                NewItems.value[index].total
+                NewItems.value[index].total - NewItems.value[index].discount
               );
               NewItems.value[index].net =
-                useHandleTax(element.taxValue, NewItems.value[index].total) +
+                useHandleTax(element.taxValue, NewItems.value[index].total - NewItems.value[index].discount) +
                 NewItems.value[index].total -
                 NewItems.value[index].discount;
             });
@@ -513,6 +513,7 @@ export const useCommonStore = defineStore("common", () => {
     GeneralFields.value.date  = date.toISOString().substring(0 , 10);
     GeneralFields.value.time = date.toTimeString().split(' ')[0]
     GeneralFields.value.isTaxApplied = data.isTaxApplied;
+    
     // إذا كان عرض فقط يتم تحديد الحقول 
     if (!isEdit) {
       Branches.value = [{gun: data.branchGUN ? data.branchGUN : '', name2: data.branchName}]

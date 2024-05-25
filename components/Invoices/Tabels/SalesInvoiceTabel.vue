@@ -18,9 +18,10 @@ import AlternativeItems from "../Models/AlternativeItems.vue";
 import Popover from "~/components/DesignSystem/Generals/Popover.vue";
 import { useRoute } from "vue-router";
 import { isNumber } from "~/node_modules/@intlify/shared/dist/shared";
+import {useSettingsStore}  from '~/stores/settings'
 const route = useRoute();
 const dialog = ref(false);
-const props = defineProps(["recalculate", "itemValidation", "isEdit", "discountFromParent"]);
+const props = defineProps(["recalculate", "itemValidation", "isEdit", "discountFromParent", 'isDisplay']);
 const emit = defineEmits([
   "setInvoiceFooter",
   "restRecalculate",
@@ -29,8 +30,10 @@ const emit = defineEmits([
   "showAlternativeItems",
   "calculate",
   
+  
 ]);
-const {toDouble} = useCalculateNumbers()
+const {toDouble} = useCalculateNumbers();
+const settingsStore = useSettingsStore();
 const salesStore = useSalesStore();
 const commonStore = useCommonStore();
 const priceTitle = ref("");
@@ -49,12 +52,13 @@ const page = ref(1);
 const input = ref("");
 const validItem = ref(false);
 onMounted(() => {
-  if (NewItems.value.length > 0) {
-    for (let index = 0; index < NewItems.value.length; index++) {
-      setNet(index)
-    }
-    
-  }
+  // setTimeout(() => {
+  //   if (NewItems.value.length > 0) {
+  //   for (let index = 0; index < NewItems.value.length; index++) {
+  //     setTotal(index)
+  //   }
+  // }
+  // }, 500)
 })
 onUnmounted(() => {
   IsDetailsOnly.value = false
@@ -144,7 +148,6 @@ async function handleWarehouse(warehouseID, index) {
   handleQuantity(null, index);
 }
 async function handleQuantity(quantity, index) {
-  let newquantity = NewItems.value[index].quantity;
   let unitIndex = ItemDetails.value[index]?.nonServiceData?.units.findIndex(
     (unit) => {
       return unit.gun === NewItems.value[index].unitGUN;
@@ -155,8 +158,9 @@ async function handleQuantity(quantity, index) {
     let unit = await ItemDetails.value[index]?.nonServiceData?.units[unitIndex];
     NewItems.value[index].warehouseQuantity =
       NewItems.value[index].warehouseQuantity / unit.equivalent;
+      setTotal(index);
   }
-  setTotal(index);
+  
 }
 function handlePrice(price, index) {
  
@@ -171,8 +175,7 @@ function handleDiscount(discount, index) {
     if (discount.includes("%")) {
       discount = discount.split("%")[0];
       discount = isNumber(parseInt(discount)) ? (parseFloat(discount) / 100) * NewItems.value[index].total : 0;
-      console.log(discount)
-      NewItems.value[index].discount = toDouble(useHandleDiscount(
+      NewItems.value[index].discount = settingsStore.toDouble(useHandleDiscount(
         discount,
         NewItems.value[index].quantity,
         NewItems.value[index].total,
@@ -183,12 +186,12 @@ function handleDiscount(discount, index) {
     } else {
       const isNumber = isNaN(parseInt(discount)) ? false : true;
       if (isNumber) {
-        NewItems.value[index].discount = toDouble(useHandleDiscount(
-        discount,
+        NewItems.value[index].discount = useHandleDiscount(
+        parseFloat(discount),
         NewItems.value[index].quantity,
         NewItems.value[index].total,
         NewItems.value[index].price
-      ))
+      ) 
         setNet(index);
       } else {
         NewItems.value[index].discount = "";
@@ -211,8 +214,7 @@ function setTotal(index) {
     }
     // emit("restRecalculate");
   } else {
-    NewItems.value[index].total =
-      NewItems.value[index].price * NewItems.value[index].quantity;
+    NewItems.value[index].total = settingsStore.toDouble(NewItems.value[index].price * NewItems.value[index].quantity)
 
     // handleDiscount(NewItems.value[index].discount, index);
     // handleTax(index);
@@ -228,17 +230,17 @@ function handleTax(index) {
   );
   }
   
-  NewItems.value[index].net =
-  NewItems.value[index].total + NewItems.value[index].taxValue;
+  setNet(index)
 
-  // setNet(index);
 }
 function setNet(index) {
-  NewItems.value[index].net = toDouble(NewItems.value[index].total -
+  NewItems.value[index].net = settingsStore.toDouble(NewItems.value[index].total -
     NewItems.value[index].discount +
     NewItems.value[index].taxValue)
     
+   setTimeout(() => {
     emit('calculate')
+   }, 500)
 }
 function getSelectedWarehouseIndex(warehouseID, index) {
   let warhouseIndex = ItemDetails.value[
@@ -279,6 +281,7 @@ function setPrice() {
   let discountInput = row.ownerDocument.querySelector(".discount input");
   discountInput.focus();
   discountInput.select();
+  setTotal( priceItemIndex.value)
 }
 function canclePrice() {
   NewItems.value[priceItemIndex.value].price =
@@ -365,8 +368,26 @@ function handleItemOptions(id,itemId,index){
       break;
   }
 }
+function getNameFromArray(idName, itemIdName,index,toFetchArray, array) {
+  if(array) {
+    let name = array?.find(item => {
+    return item[idName] === toFetchArray[index][itemIdName]
+  })
+  if (name) {
+    return name.name
+  }
+  }
+  
+}
+function setQuantityInput (quantity, index) {
+  NewItems.value[index].quantity =  settingsStore.QuantityDigit(quantity);
+}
+function setPriceInput (price, index) {
+  NewItems.value[index].price =  settingsStore.twoDigits(price);
+}
 </script>
 <template>
+  
   <table>
     <thead>
       <tr>
@@ -384,9 +405,10 @@ function handleItemOptions(id,itemId,index){
       </tr>
     </thead>
     <tbody v-if="NewItems.length > 0">
+      
       <!-- click event on the ROW only for Edit Inovice  -->
       <tr v-for="(item, i) in NewItems" :key="i" @click.capture="getUnitsAndWarehouse(i)">
-        {{  handlePrice(0, i)  }}
+        {{  setTotal(i)  }}
         <!-- الرقم  -->
         <td class="text-center align-center gap-4 justify-center">
           {{ i + 1 }} <span class="circle" v-if="item.forSale === false"></span>
@@ -484,6 +506,7 @@ function handleItemOptions(id,itemId,index){
             :items="Items || []"
             :displayTitle="'name'"
             :returnValue="'gun'"
+            :rightTitle="item.itemNo ? 'itemNo' : 'no'"
             @setItem="getItemDetails"
             @getMoreItems="getItems"
             :placeholder="'رقم / باركود الصنف'"
@@ -531,6 +554,8 @@ function handleItemOptions(id,itemId,index){
             "
             :leftInnerIconToolTip="'هذا المستودع موقف'"
             :leftInnerIconToolTipPosition="'bottom'"
+            :inputToolTipText="getNameFromArray('gun', 'warehouseGUN',i,NewItems ,ItemDetails[i]?.nonServiceData?.warehouses)" 
+            :inputToolTipPosition="'bottom'"
             :color="
               ItemDetails[i]?.nonServiceData?.warehouses[
                 getSelectedWarehouseIndex(item.warehouseGUN, i)
@@ -546,19 +571,20 @@ function handleItemOptions(id,itemId,index){
           <TextBox
             :size="'sm'"
             v-model:input="item.quantity"
+            @setInput="setQuantityInput"
             @changeInput="handleQuantity"
             :color="
-              item?.itemGUN || item?.gun ? ((item.quantity === 0 || item.warehouseQuantity <= 0) ? 'danger' : undefined) : undefined
+             item?.itemGUN || item?.gun ? ((item.quantity === 0 || item.warehouseQuantity <= 0) ? 'danger' : undefined) : undefined
             "
             :index="i"
             :inputToolTipText="
-              item.itemGUN
+             ItemDetails[i]?.type !== 2  ? item.itemGUN
                 ? `الكمية في المستودع: ${
                     item.warehouseQuantity ? item.warehouseQuantity : 0
                   }`
-                : undefined
+                : undefined : undefined 
             "
-            :inputToolTipPosition="'bottom'"
+            :inputToolTipPosition="'bottom'"               
           />
         </td>
         <!-- السعر   -->
@@ -568,7 +594,7 @@ function handleItemOptions(id,itemId,index){
             :leftIcon="Sort"
             :size="'sm'"
             v-model:input="item.price"
-            
+            @setInput="setPriceInput"
             @changeInput="handlePriceChange"
             :index="i"
             :inputToolTipText="item?.unitPriceList ? item?.unitPriceList[0]?.price :'' "

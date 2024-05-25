@@ -46,6 +46,7 @@ function hasDiscount(customerID, index) {
         :returnValue="'gun'"
         :selectItem="EditCustomerGun"
         :disabled="isDisplay"
+        :rightTitle="'no'"
         v-model:input="Customer.name"
         @clearSelected="clear"
         @setInput="checkNameChange"

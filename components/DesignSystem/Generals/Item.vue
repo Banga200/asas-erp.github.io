@@ -3,13 +3,14 @@ import { ref } from "vue";
 import ToolTip from "./ToolTip.vue";
 import CheckBox from "../Inputs/CheckBox.vue";
 import CheckMark from "~/components/Icons/Inputs/CheckMark.vue";
-const { text, rightIcon, color, leftIcon, leftInnerIcon, multi, underline, value, disabled, selected, leftIconToolTip,leftIconToolTipPosition,leftInnerIconToolTip,leftInnerIconToolTipPosition } =
+const { text, rightIcon, color, leftIcon, leftInnerIcon, multi, underline, value, disabled, selected, rightText, leftIconToolTip,leftIconToolTipPosition,leftInnerIconToolTip,leftInnerIconToolTipPosition } =
   defineProps([
     "text",
     "rightIcon",
     "leftIcon",
     'color',
     "leftInnerIcon",
+    "rightText",
     "multi",
     "underline",
     "value",
@@ -26,8 +27,9 @@ const { text, rightIcon, color, leftIcon, leftInnerIcon, multi, underline, value
     <div class="icon" v-if="rightIcon">
         <component :is="rightIcon" />
     </div>
+    
     <!-- Text  -->
-    <li class="text">{{ text }} </li>
+    <li class="text">{{rightText}}  {{ text }} </li>
 
     <div class="value" v-if="value">{{ value }}</div>
     <!-- Icons  -->

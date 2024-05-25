@@ -3,5 +3,6 @@ export const useHandleDiscount = (discount,quantity, total, price) => {
         let result = (discount / total) * price;
         return result * quantity;
     }
+    return 0 ;
     
 }

@@ -37,6 +37,7 @@ const props = defineProps([
   "readOnly",
   "leftInnerIconItemText",
   "leftInnerIconItem",
+  "rightTitle",
   "rightIcon",
   "leftIcon",
   "badgeText",
@@ -51,6 +52,8 @@ const props = defineProps([
   "leftIconToolTipPosition",
   "leftInnerIconToolTip",
   "leftInnerIconToolTipPosition",
+  "inputToolTipText",
+  "inputToolTipPosition",
   "DropArrowIcon",
   "selectItem",
 ]);
@@ -170,7 +173,7 @@ function openAdvanceSearch() {
   }
 }
 function setFirstItem(item) {
-  input.value = item[props.displayTitle];
+  input.value = item[props.displayTitle] 
   selectedItem.value = item[props.returnValue];
   valueReturn.value = item[props.returnValue];
   emit("setItem", item[props.returnValue], props.index);
@@ -239,7 +242,7 @@ function handleLinkKeydown(index) {
   <div
     class="input-group"
     :class="{ 'full-width': fullWidth }"
-    v-move-next-on-enter
+    
     @focusout.stop="unfocus"
   >
     <label v-if="label">{{ label }}</label>
@@ -254,6 +257,7 @@ function handleLinkKeydown(index) {
       ]"
       @click.stop="focus"
     >
+    <ToolTip :text="inputToolTipText" :position="inputToolTipPosition"  :textBox="Boolean(inputToolTipText)" v-move-next-on-enter>
       <input
         @keydown.exact="handleKeydown"
         tabindex="0"
@@ -268,6 +272,7 @@ function handleLinkKeydown(index) {
         :readonly="readOnly"
         class="combobox"
       />
+    </ToolTip>
       <div v-if="input && clearable && !disabled">
         <CloseIcon class="closeIcon" @click="clearInput" />
       </div>
@@ -305,6 +310,7 @@ function handleLinkKeydown(index) {
         <Item
           tabindex="0"
           v-for="item in filterItem"
+          :rightText="props.rightTitle ? `${item[props.rightTitle]} >>`: ''"
           :key="item[props.returnValue]"
           :text="item[props.displayTitle]"
           :leftInnerIcon="
@@ -318,7 +324,7 @@ function handleLinkKeydown(index) {
               : undefined
           "
           @click.stop="
-            setItem(item[props.displayTitle], item[props.returnValue])
+            setItem((props.rightTitle ? `${item[props.rightTitle]} >> `: '') + item[props.displayTitle] , item[props.returnValue])
           "
           :leftInnerIconToolTipPosition="'bottom-right'"
           :selected="item[props.returnValue] === selectedItem"
@@ -341,6 +347,7 @@ function handleLinkKeydown(index) {
       >
         <template v-slot="{ item }">
           <Item
+          :rightText="props.rightTitle ? `${item[props.rightTitle]} >>` : ''"
             tabindex="0"
             :class="{
               focus:
@@ -351,7 +358,7 @@ function handleLinkKeydown(index) {
             :text="item[props.displayTitle]"
             :selected="item[props.returnValue] === selectedItem"
             @click.stop="
-              setItem(item[props.displayTitle], item[props.returnValue])
+              setItem((props.rightTitle ? `${item[props.rightTitle]} >> `: '') + item[props.displayTitle] , item[props.returnValue])
             "
             @keydown.prevent="handleLinkKeydown(index)"
           />

@@ -34,7 +34,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                     success.value = true
                 }
                 else {
-                    handleCodesMessage(res.code, res.data.viewMessage);
+                    handleCodesMessage(res.code,  res.data[0] ? res.data[0].viewMessage : res.data.viewMessage);
                 }
             }).catch(error => {console.log(error)})
             
@@ -63,7 +63,7 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
                     commonStore.ClearEverythings();
                 }
                 else {
-                    handleCodesMessage(res.code, res.data.message)
+                    handleCodesMessage(res.code, res.data[0] ? res.data[0].message : res.data.message)
                 }
                 
             }).catch(error => {
@@ -80,10 +80,12 @@ export const useOfferPriceStore = defineStore('offerPrice', () => {
             await useServerFetch(`/offerPrice/${offerPriceID}/specific-view-data-of-items/${pageNumber}`, {
             }).then(res => {
                 if (res.code === '200') {
+                    
                     for (let index = 0; index < res.data.viewData.data.length; index++) {
                         const element = res.data.viewData.data[index];
                         commonStore.NewItems.push(element);
                         commonStore.NewItems[index].name = element.itemName
+                        commonStore.NewItems[index].itemNo  = element.itemNo 
                         commonStore.NewItems[index].warehouseName = element.warehouseCode
                         commonStore.NewItems[index].taxValue = element.taxValue;
 

@@ -1,5 +1,6 @@
 export default function () {
     function toDouble (num)  {
+        console.log(num)
         let str = num.toString();
         let decimalIndex = str.indexOf('.');
         

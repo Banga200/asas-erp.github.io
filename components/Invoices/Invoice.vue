@@ -69,7 +69,8 @@ const treeDisabled = ref(false);
 const contentDisabled = ref(true);
 const tableDisabled = ref(true);
 const invoiceIdTemp = ref(null);
-const isCustomerDiscount = ref(false)
+const isCustomerDiscount = ref(false);
+const InvoiceTable = ref(null)
 const validation = ref({
   customer: false,
   item: false,
@@ -100,6 +101,7 @@ const {
   TaxApplied,
 } = storeToRefs(commonStore);
 let date = new Date();
+const settingsStore = useSettingsStore();
 const userStore = useUserStore();
 await userStore.CheckPermissions(route.meta.moduleId);
 const { Permissions } = storeToRefs(userStore);
@@ -215,6 +217,7 @@ async function AddNewInvoice() {
       GeneralFields.value.date = date.toISOString().substring(0, 10);
       GeneralFields.value.time = date.toTimeString().split(" ")[0];
       GeneralFields.value.branchGUN = Branches.value[0].gun;
+      GeneralFields.value.isTaxApplied = false
       handleDateTime();
       if (OfferPrice) {
         commonStore.GetBranchDataForOfferPrice(
@@ -231,7 +234,7 @@ async function AddNewInvoice() {
     }
   }
 }
-function cancel() {
+async function cancel() {
   contentDisabled.value = true;
   tableDisabled.value = true;
   treeDisabled.value = false;
@@ -255,7 +258,7 @@ function cancel() {
   CustomerDiscount.value = 0
   isNew.value = true;
   GeneralFields.value.isCash = true;
-  OfferPriceStore.GetOfferPriceInvoices();
+  await OfferPriceStore.GetOfferPriceInvoices();// شيك اذا كان عرض سعر او مبيعات او مرتجع
   let items = document.querySelectorAll(".tree li .item-row");
   if (items.length > 0) {
     items.forEach((item) => {
@@ -478,7 +481,7 @@ async function handleTaxApplied(isTaxApplied, index) {
                 //   NewItems.value[selectedIndex].taxValue;
                 // }
                 NewItems.value[index].taxValue =
-                  NewItems.value[selectedIndex].taxValue;
+                  settingsStore.toDouble(NewItems.value[selectedIndex].taxValue)
               }
             }
           }
@@ -509,7 +512,8 @@ function calculateInvoiceFooter() {
   for (let index = 0; index < items; index++) {
     const element = NewItems.value[index];
     if (element && element.unitName) {
-      quantityCount += parseInt(element.quantity);
+      quantityCount += ItemDetails.value[index]?.type !== 3 ? parseFloat(element.quantity)  : 0;
+      weight += ItemDetails.value[index]?.type === 3 ? parseFloat(element.quantity) : 0;
       total += element.total;
       taxValue += element.taxValue;
       discount += element.discount;
@@ -520,13 +524,14 @@ function calculateInvoiceFooter() {
     isEdit.value || !isNew.value
       ? NewItems.value.length - 1
       : NewItems.value.length;
-  footerDetails.value.quantityCount = parseInt(quantityCount);
+  footerDetails.value.quantityCount = parseFloat(quantityCount);
+  footerDetails.value.weight = parseFloat(weight);
   // left Side
-  footerFields.value.total = toDouble(total);
-  footerFields.value.totalBeforeTax = total - discount;
-  footerFields.value.taxValue = toDouble(taxValue);
-  footerFields.value.discount = discount;
-  footerFields.value.invoiceValue = toDouble(net);
+  footerFields.value.total = settingsStore.toDouble(total);
+  footerFields.value.totalBeforeTax = settingsStore.toDouble(total - discount);
+  footerFields.value.taxValue = settingsStore.toDouble(taxValue);
+  footerFields.value.discount = settingsStore.toDouble(discount);
+  footerFields.value.invoiceValue = settingsStore.toDouble(net);
 }
 function handleDiscount(discount) {
   discount = discount ? discount : footerDetails.value.discount;
@@ -573,12 +578,12 @@ function setDiscountToAllItems(discount) {
     let updatedItems = [...NewItems.value];
     for (let index = 0; index < updatedItems.length - 1; index++) {
       const element = updatedItems[index];
-      let result = toDouble(useHandleDiscount(
+      let result = settingsStore.toDouble(useHandleDiscount(
         discountDivided,
         element.quantity,
         element.total,
         element.price
-      ));
+      ))
       updatedItems[index].discount = result || 0;
       // element.net = element.total - element.discount + element.taxValue;
     }
@@ -803,6 +808,7 @@ async function editInvoice() {
     contentDisabled.value = false;
     let invoiceId = GeneralFields.value.gun;
     if (isEdit.value) {
+      
     treeDisabled.value = false;
     await OfferPriceStore.GetOfferPriceInvoiceEditById(invoiceId);
     GeneralFields.value.date = date.toISOString().substring(0, 10);
@@ -1176,6 +1182,8 @@ function deleteFromChild(invoiceId) {
           :isEdit="isEdit"
           :itemValidation="validation.item"
           :recalculate="recalculate"
+          ref="InvoiceTable"
+          :isDisplay="isNew"
           @showAlternativeItems="() => (alternativeDialog = true)"
           @restRecalculate="() => (recalculate = false)"
           @recalculateTotalDiscount="setDiscountToAllItems"
@@ -1275,7 +1283,7 @@ function deleteFromChild(invoiceId) {
                 <TextBox
                   :label="'الحسم'"
                   v-model:input="footerFields.discount"
-                  @setInput="handleDiscount"
+                  @changeInput="handleDiscount"
                 />
               </div>
               <div>
